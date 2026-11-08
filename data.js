@@ -314,6 +314,14 @@ KAR.certApply = {
   fallbackEmail: "kar0159@kar.re.kr (등록·승급) / kar0156@kar.re.kr (갱신·전환)",
   subjectPrefix: "[홈페이지 자격인증 신청]",
 
+  // 메일 전송 방식
+  //   "ajax" : 페이지 이동 없이 전송 → "접수가 완료되었습니다." 팝업 (기본)
+  //   "post" : 일반 폼 제출(페이지가 잠시 FormSubmit 으로 갔다가 돌아옴) — ajax 로 메일이 안 올 때 예비용
+  sendMode: "ajax",
+  // 시험용 : true 로 바꾸면 폼 아래에 처리 과정(업로드 결과 · 다운로드 URL · 전송 값)이 표시됩니다.
+  //          시험이 끝나면 꼭 false 로 돌려 두세요.
+  debug: false,
+
   // 첨부 제한 — Firebase 보안 규칙(storage.rules)과 같은 값으로 맞춥니다.
   maxFiles: 3,                      // 신청 1건당 최대 파일 수 (최소 1개 필수)
   maxFileMB: 30,                    // 파일 1개당 최대 용량(MB)

@@ -377,7 +377,18 @@
         <div class="ca-card">
           <p class="ca-setup" id="ca-setup" hidden>※ 관리자 안내 : data.js 의 KAR.certApply.firebaseConfig(storageBucket)가 아직 설정되지 않아 제출할 수 없습니다.</p>
 
-          <form class="ca-form" id="ca-form" novalidate>
+          <!-- ▼ FormSubmit 전송 폼
+               ★ 받는 메일(Action) 주소 : 신청 유형별로 data.js → KAR.certApply.routes 에서 바꿉니다.
+                 (아래 action 은 기본값이며, 제출 직전에 신청 유형에 맞는 주소로 자동 교체됩니다)
+               ★ Firebase Config : data.js → KAR.certApply.firebaseConfig -->
+          <form class="ca-form" id="ca-form" method="POST" action="https://formsubmit.co/kar0159@kar.re.kr" novalidate>
+            <!-- FormSubmit 설정용 숨김 항목 (값은 자바스크립트가 채움) -->
+            <input type="hidden" name="_subject"  id="ca-h-subject">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_captcha"  value="false">
+            <input type="hidden" name="_replyto"  id="ca-h-replyto">
+            <input type="hidden" name="접수번호"   id="ca-h-no">
+
             <p class="ca-req-note"><span class="ca-req" aria-hidden="true">*</span> 표시는 필수 입력 항목입니다.</p>
 
             <!-- 1. 신청인 정보 -->
@@ -438,8 +449,15 @@
               <p class="ca-msg" id="ca-file-msg" hidden>증빙서류를 1개 이상 첨부해 주세요.</p>
             </fieldset>
 
+            <!-- 메일에 들어갈 숨김 항목 (값은 자바스크립트가 채움 · 메일 표에는 이 순서대로 표시) -->
+            <input type="hidden" name="인증 스킴"  id="ca-h-schemes">
+            <!-- ★ Firebase 업로드 후 받은 다운로드 URL 이 여기에 들어갑니다 (여러 개는 줄바꿈 없이 ' , ' 로 구분) -->
+            <input type="hidden" name="첨부파일_링크" id="ca-h-links">
+            <!-- 파일별 '첨부파일1_이름 / 첨부파일1_링크 …' 숨김 항목은 이 안에 자동으로 만들어집니다 -->
+            <div id="ca-h-files"></div>
+
             <!-- 자동 입력 로봇 차단용(사람에게 보이지 않음) -->
-            <div class="of-hp" aria-hidden="true"><label>비워 두세요 <input type="text" id="ca-honey" tabindex="-1" autocomplete="off"></label></div>
+            <div class="of-hp" aria-hidden="true"><label>비워 두세요 <input type="text" name="_honey" id="ca-honey" tabindex="-1" autocomplete="off"></label></div>
 
             <p class="of-error" id="ca-error" role="alert" hidden></p>
             <div class="ca-progress" id="ca-progress" hidden>

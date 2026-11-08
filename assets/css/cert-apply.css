@@ -103,3 +103,6 @@
 .edu-guide__hd p{margin:0;color:var(--muted);font-size:14px}
 .edu-guide .howto{margin-top:18px}
 @media (max-width:640px){ .edu-guide{padding:16px 12px 4px} }
+
+/* 시험용 처리 기록 (data.js → KAR.certApply.debug: true) */
+.ca-debug{margin:0 0 16px;padding:12px 14px;max-height:340px;overflow:auto;background:#0f1b2d;color:#d6e6ff;border-radius:8px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-all}

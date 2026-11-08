@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>페이지 이동 안내 — 한국심사자격인증원</title>
+<style>
+  body{margin:0;font-family:"Noto Sans KR","Malgun Gothic",sans-serif;background:#f5f7fa;color:#3a4250;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;word-break:keep-all}
+  .box{background:#fff;max-width:560px;width:100%;border-radius:12px;box-shadow:0 8px 30px rgba(12,48,98,.12);overflow:hidden;text-align:center}
+  .top{background:linear-gradient(135deg,#0a6fb5,#0c3062);color:#fff;padding:28px 20px}
+  h1{margin:0;font-size:22px}
+  .body{padding:24px 24px 28px;line-height:1.7}
+  a.btn{display:inline-block;margin-top:14px;background:#0c3062;color:#fff;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:6px}
+  small{display:block;margin-top:14px;color:#6b7380}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="top"><h1>홈페이지 보안 강화 작업 중입니다</h1></div>
+  <div class="body">
+    <p>요청하신 페이지는 작업 기간 동안 이용할 수 없습니다.<br>
+       교육 신청 · 서식 다운로드 · 자격인증기준 등은 <b>임시 홈페이지</b>에서 이용해 주세요.</p>
+    <a class="btn" id="home" href="/">임시 홈페이지로 이동</a>
+    <small><span id="sec">5</span>초 후 자동으로 이동합니다. · 문의 02-2026-3737 / admin@kar.re.kr</small>
+  </div>
+</div>
+<script>
+  (function(){
+    var base='/';
+    if(/\.github\.io$/.test(location.hostname)){var seg=location.pathname.split('/')[1];if(seg)base='/'+seg+'/';}
+    document.getElementById('home').href=base;
+    var n=5,s=document.getElementById('sec');
+    var t=setInterval(function(){n--;s.textContent=n;if(n<=0){clearInterval(t);location.replace(base);}},1000);
+  })();
+</script>
+</body>
+</html>

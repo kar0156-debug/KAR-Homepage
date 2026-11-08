@@ -1,0 +1,207 @@
+/* ==========================================================================
+   KAR 소개 (ka-*) · 비용 규정 (kf-*) 전용 스타일
+   - style.css 의 색상 변수(--navy, --b1, --line …)를 사용합니다.
+   ========================================================================== */
+
+/* ---------- 탭 영역 래퍼 (기존 카드 테두리 제거) ---------- */
+.about-body{background:none;border:0;padding:0;min-height:200px}
+.fee-body.fee-doc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px 26px}
+.fee-main-tabs button{font-size:16px;padding:11px 24px}
+@media (max-width:640px){.fee-body.fee-doc{padding:16px 12px 18px}.fee-main-tabs button{font-size:14px;padding:9px 14px}}
+
+/* ---------- 공통 카드 ---------- */
+.ka-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px 30px}
+.ka-h2{font-size:21px;color:var(--navy);margin:0 0 18px;padding-left:12px;border-left:5px solid var(--b1);line-height:1.3}
+
+/* ---------- 회장 · 원장 인사말 ---------- */
+.ka-greet{background:#fff;border:1px solid var(--line);border-radius:14px;padding:30px;overflow:hidden}
+.ka-hero{display:grid;grid-template-columns:1.25fr .75fr;border-radius:12px;overflow:hidden;margin-bottom:34px;min-height:300px}
+.ka-hero__text{background:#0b5394;color:#fff;padding:36px 38px;display:flex;flex-direction:column;justify-content:center}
+.ka-greet--director .ka-hero__text{background:#0c385c}
+.ka-hero__sub{margin:0 0 14px;font-size:14px;font-weight:700;color:#add8e6}
+.ka-greet--director .ka-hero__sub{color:#90cdf4}
+.ka-hero__title{margin:0;color:#fff;font-size:26px;line-height:1.45;font-weight:800;letter-spacing:-.5px;word-break:keep-all}
+.ka-hero__title span{color:#63b3ed}
+.ka-hero__desc{margin:16px 0 0;font-size:14px;line-height:1.7;color:#e2e8f0;word-break:keep-all}
+.ka-hero__desc + .ka-hero__desc{margin-top:8px}
+.ka-hero__photo{margin:0;background:#eaedd2;display:flex;align-items:flex-end;justify-content:center}
+.ka-greet--director .ka-hero__photo{background:#f0f4f8}
+.ka-hero__photo img{display:block;width:100%;height:100%;max-height:420px;object-fit:cover;object-position:center top}
+.ka-title{text-align:center;font-size:22px;color:#0b5394;margin:0 0 24px}
+.ka-lead{font-size:17px;font-weight:700;color:var(--ink);margin:0 0 20px}
+.ka-paras p{margin:0 0 16px;font-size:15.5px;line-height:1.85;color:#4a5568;text-align:justify;word-break:keep-all}
+.ka-sign{display:flex;justify-content:flex-end;align-items:center;gap:18px;margin-top:36px;padding-top:20px;border-top:1px dashed var(--line)}
+.ka-sign__name{margin:0;text-align:right;font-size:16px;line-height:1.5}
+.ka-sign__img{display:block;width:150px;height:auto;max-height:80px;object-fit:contain}
+.ka-points{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-left:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ka-points li{padding:26px 28px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ka-points__num{display:block;font-size:28px;font-weight:800;color:#319795;line-height:1;margin-bottom:10px}
+.ka-points h3{margin:0 0 4px;font-size:18px;color:var(--ink)}
+.ka-points__sub{margin:0 0 12px;font-size:13.5px;font-weight:700;color:#319795}
+.ka-points li p:last-child{margin:0;font-size:14.5px;line-height:1.7;color:#4a5568;word-break:keep-all}
+
+/* ---------- 기관경영 방침 | 조직도 (2열) ---------- */
+.ka-split{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start}
+.ka-split > *{min-width:0}
+.ka-split__side{position:sticky;top:92px}
+.ka-policy{margin:0 0 20px;padding:18px 20px;background:#f0f4f8;border-left:4px solid var(--navy);border-radius:0 10px 10px 0;font-size:16px;font-weight:600;color:#1e293b;line-height:1.75;word-break:keep-all}
+.ka-mini{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.ka-mini h3{margin:0 0 10px;font-size:16.5px;color:#2563eb}
+.ka-mini ul{list-style:none;margin:0;padding:0}
+.ka-mini li{position:relative;padding-left:15px;margin-bottom:7px;font-size:14.5px;color:#475569;line-height:1.65}
+.ka-mini li::before{content:"";position:absolute;left:2px;top:.68em;width:5px;height:5px;border-radius:50%;background:#3b82f6}
+.ka-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ka-mini-grid .ka-mini{margin-bottom:0}
+.ka-org{margin:0;text-align:center}
+.ka-org img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line2);background:#fff}
+.ka-org figcaption{margin-top:8px;font-size:13px;color:var(--muted)}
+.ka-org--wide img{max-width:980px;margin:0 auto}
+
+/* ---------- 공평성 선언 ---------- */
+.ka-intro{margin:0 0 18px;color:#475569;font-style:italic;line-height:1.75;word-break:keep-all}
+.ka-decl{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ka-decl li{background:#f1f5f9;border-radius:10px;padding:15px 20px;font-size:15px;color:#334155;line-height:1.7;word-break:keep-all}
+.ka-decl strong{display:block;color:var(--navy);margin-bottom:4px}
+.ka-decl__foot{margin:20px 0 0;text-align:right;font-weight:800;color:var(--navy);font-size:17px}
+
+/* ---------- 주요업무 ---------- */
+.ka-mission{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);color:#fff;border-radius:12px;padding:22px;text-align:center;margin-bottom:22px}
+.ka-mission span{display:block;font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:.85;margin-bottom:4px}
+.ka-mission p{margin:0;font-size:21px;font-weight:600}
+.ka-biz{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ka-biz__card{border:1px solid #e2e8f0;border-top:4px solid #1e3a8a;border-radius:0 0 10px 10px;padding:20px}
+.ka-biz__card h3{margin:0 0 12px;padding-bottom:8px;border-bottom:1px dashed #e2e8f0;font-size:18px;color:#1e3a8a}
+.ka-biz__card h4{margin:12px 0 4px;font-size:15px;color:#2563eb}
+.ka-biz__card p{margin:0;font-size:14px;color:#475569;line-height:1.65}
+
+/* ---------- 연혁 ---------- */
+.ka-tl{position:relative;padding-left:30px}
+.ka-tl::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:#cbd5e1}
+.ka-tl__group{margin-bottom:26px}
+.ka-tl__era{position:relative;margin:0 0 12px;font-size:20px;color:var(--navy)}
+.ka-tl__era::before{content:"";position:absolute;left:-29px;top:6px;width:14px;height:14px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 2px #3b82f6}
+.ka-tl__year{padding-left:6px;margin-bottom:12px}
+.ka-tl__year h4{margin:0 0 6px;font-size:17px;color:#2563eb}
+.ka-tl__year dl{display:grid;grid-template-columns:64px 1fr;gap:6px 12px;margin:0}
+.ka-tl__year dt{font-weight:700;color:#0284c7}
+.ka-tl__year dd{margin:0;color:#475569;font-size:15px;line-height:1.65}
+
+/* ---------- KAR LOGO ---------- */
+.ka-logo-head{text-align:center;margin-bottom:26px;padding-bottom:16px;border-bottom:2px solid var(--gray)}
+.ka-logo-head .ka-h2{display:inline-block;border:0;padding:0;margin:0 0 6px;font-size:26px}
+.ka-logo-head p{margin:0;color:var(--muted)}
+.ka-logo{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:start}
+.ka-logo > *{min-width:0}
+.ka-logo__visual{background:var(--gray);border:1px dashed #cbd5e1;border-radius:14px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:22px}
+.ka-logo__box{margin:0;background:#fff;border-radius:12px;padding:24px;box-shadow:0 4px 8px rgba(0,0,0,.05);width:100%;max-width:380px;text-align:center}
+.ka-logo__box img{display:block;max-width:100%;max-height:150px;margin:0 auto;object-fit:contain}
+.ka-logo__box figcaption{margin-top:10px;font-size:13px;color:var(--muted);font-weight:600}
+.ka-logo__keys{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;font-size:13.5px;color:var(--text)}
+.ka-logo__keys li{display:inline-flex;align-items:center;gap:6px}
+.ka-key{display:inline-block;width:22px;height:12px;flex:0 0 auto}
+.ka-key--color{background:linear-gradient(90deg,#e8262d 50%,#2f7dd1 50%);border-radius:3px}
+.ka-key--band{background:repeating-linear-gradient(90deg,#e8262d 0 5px,#fff 5px 8px);border-radius:2px}
+.ka-key--para{background:#2f7dd1;transform:skewX(-25deg);width:18px}
+.ka-logo__info{display:flex;flex-direction:column;gap:28px}
+.ka-mean{border-left:4px solid var(--navy);padding:4px 0 4px 20px}
+.ka-mean__tag{display:inline-flex;align-items:center;gap:7px;background:#e0f2fe;color:#334155;font-size:13px;font-weight:700;border-radius:999px;padding:3px 12px;margin-bottom:8px}
+.ka-mean__num{margin:0 0 2px;font-size:13.5px;font-weight:800;color:#2563eb;letter-spacing:.5px}
+.ka-mean h3{margin:0 0 8px;font-size:18px;color:#0f172a}
+.ka-mean p:last-child{margin:0;font-size:14.5px;color:#475569;line-height:1.75;text-align:justify;word-break:keep-all}
+
+/* ==========================================================================
+   비용 규정 탭
+   ========================================================================== */
+.kf-sub{display:inline-flex;gap:4px;padding:4px;background:var(--gray);border:1px solid var(--line);border-radius:999px;margin:4px 0 20px}
+.kf-sub button{border:0;background:transparent;border-radius:999px;padding:9px 26px;font-weight:700;font-size:15px;color:var(--muted);min-height:40px}
+.kf-sub button:hover{color:var(--navy)}
+.kf-sub button[aria-selected="true"]{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(12,48,98,.15)}
+.kf-h3{margin:0 0 6px;font-size:19px;color:var(--navy)}
+.kf-small{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
+.kf-table-wrap{border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;margin:10px 0 18px}
+.kf-table{width:100%;border-collapse:collapse;font-size:14.5px;background:#fff}
+.kf-table thead th{background:#e6f0fa;color:#1e3a8a;font-weight:700;padding:12px 14px;border-bottom:1px solid #cbd5e1;text-align:center}
+.kf-table th,.kf-table td{padding:11px 14px;border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0;vertical-align:middle;text-align:center;word-break:keep-all}
+.kf-table tr > *:last-child{border-right:0}
+.kf-table tbody tr:last-child > *{border-bottom:0}
+.kf-table .kf-g{background:#f1f5f9;color:var(--ink);font-weight:700}
+.kf-table .kf-g small{display:block;font-weight:400;font-size:12.5px;color:var(--muted);margin-top:3px}
+.kf-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink);white-space:nowrap}
+.kf-table thead .num{text-align:center}
+.kf-table td small{color:var(--muted)}
+.kf-table tbody tr:hover td{background:#fafcfe}
+.kf-note{background:#f0f7ff;border-left:4px solid #0056b3;border-radius:0 12px 12px 0;padding:14px 18px;margin:0 0 16px;font-size:14px}
+.kf-note p{margin:4px 0}
+.kf-warn{margin:0 0 14px;font-size:13.5px;color:#c92a2a;background:#fff9db;border:1px solid #ffe3e3;border-radius:8px;padding:10px 12px}
+.kf-more{border:1px solid var(--line);border-radius:12px;background:#fff;margin:0 0 12px}
+.kf-more > summary{cursor:pointer;list-style:none;padding:13px 18px;font-weight:700;color:var(--navy);display:flex;justify-content:space-between;gap:10px}
+.kf-more > summary::-webkit-details-marker{display:none}
+.kf-more > summary::after{content:"+";color:var(--b1);font-size:20px;line-height:1}
+.kf-more[open] > summary::after{content:"−"}
+.kf-more__body{padding:0 18px 14px;font-size:14px}
+.kf-more__body p{margin:6px 0}
+.kf-more .kf-table-wrap{margin:8px 0 4px}
+.kf-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.kf-info > *{min-width:0}
+.kf-box{background:#f8fbff;border:1px solid #d2e1f3;border-radius:12px;padding:18px 20px}
+.kf-box h4{margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid #d2e1f3;font-size:16px;color:#2c5282}
+.kf-box .kf-warn{margin:12px 0 0}
+.kf-box--dl{margin-top:14px}
+.kf-acct{display:grid;grid-template-columns:76px 1fr;gap:6px 10px;margin:0;font-size:14.5px}
+.kf-acct dt{color:var(--muted);font-weight:600}
+.kf-acct dd{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kf-acct strong{font-size:17px;color:var(--navy);letter-spacing:.3px}
+.kf-list{list-style:none;margin:0;padding:0;font-size:14.5px}
+.kf-list li{position:relative;padding-left:14px;margin-bottom:6px}
+.kf-list li::before{content:"•";position:absolute;left:0;color:#4a90e2;font-weight:700}
+.kf-list b{display:inline-block;min-width:48px;color:var(--muted)}
+.kf-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.kf-dl__btn{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid #d2e1f3;border-radius:10px;padding:12px 15px;text-decoration:none;color:var(--ink);font-weight:600;font-size:14px;transition:.15s}
+.kf-dl__btn b{font-size:12px;color:var(--b1)}
+.kf-dl__btn:hover{background:#4a90e2;border-color:#4a90e2;color:#fff}
+.kf-dl__btn:hover b{color:#fff}
+
+/* ---------- 반응형 ---------- */
+@media (max-width:960px){
+  .ka-split{grid-template-columns:1fr}
+  .ka-split__side{position:static}
+  .ka-logo{grid-template-columns:1fr;gap:28px}
+  .ka-biz{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .ka-card,.ka-greet{padding:18px 16px;border-radius:12px}
+  .ka-hero{grid-template-columns:1fr;min-height:0;margin-bottom:24px}
+  .ka-hero__text{padding:24px 20px}
+  .ka-hero__title{font-size:21px}
+  .ka-hero__photo{order:-1;max-height:300px}
+  .ka-hero__photo img{max-height:300px;object-fit:contain}
+  .ka-paras p{font-size:15px;text-align:left}
+  .ka-points{grid-template-columns:1fr}
+  .ka-points li{padding:20px}
+  .ka-sign{flex-direction:column;align-items:flex-end;gap:8px}
+  .ka-sign__img{width:120px}
+  .ka-mini-grid{grid-template-columns:1fr}
+  .ka-policy{font-size:15px}
+  .ka-tl{padding-left:24px}
+  .ka-tl__era::before{left:-23px}
+  .ka-tl__year dl{grid-template-columns:52px 1fr}
+  .ka-logo__visual{padding:18px}
+  .ka-mean p:last-child{text-align:left}
+  .kf-sub{display:flex}
+  .kf-sub button{flex:1;padding:9px 10px}
+  /* 표 → 카드형 */
+  .kf-table thead{display:none}
+  .kf-table,.kf-table tbody,.kf-table tr,.kf-table th,.kf-table td{display:block;width:100%}
+  .kf-table tr{border-bottom:1px solid #e2e8f0}
+  .kf-table th,.kf-table td{border:0;text-align:left;padding:8px 14px}
+  .kf-table .kf-g{padding:10px 14px}
+  .kf-table td[data-label]{display:flex;justify-content:space-between;gap:12px}
+  .kf-table td[data-label]::before{content:attr(data-label);flex:0 0 auto;color:var(--muted);font-weight:600;font-size:13px}
+  .kf-table td[data-label] > *{text-align:right}
+  .kf-table .num{text-align:right}
+  .kf-table td[data-label="비고"]:empty{display:none}
+  .kf-info{grid-template-columns:1fr}
+}
+
+/* 기관경영 방침 : 조직도 분리 후 1열 */
+.ka-split--single{grid-template-columns:1fr}

@@ -1,0 +1,105 @@
+/* ==========================================================================
+   자격인증 신청 (Firebase Storage + FormSubmit) — 디자인
+   색상 : KAR 로고 적색(--red) · 청색(--navy, --b1) / style.css 의 변수를 그대로 사용
+   ========================================================================== */
+/* 퀵 버튼 '자격인증 신청' : 가장 연한 푸른색 */
+.q0{background:#29a3e3}
+/* '온라인 신청' 섹션 안 '자격인증 신청' 탭 */
+.ca-body{padding:22px 24px 4px}
+.quick{grid-template-columns:repeat(5,1fr)}
+
+/* 절차 안내 */
+.ca-steps{list-style:none;margin:0 0 22px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;counter-reset:s}
+.ca-steps li{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-top:3px solid var(--navy);border-radius:8px;font-weight:700;color:var(--ink);font-size:14.5px}
+.ca-steps li:last-child{border-top-color:var(--red)}
+.ca-steps b{display:inline-grid;place-items:center;flex:0 0 26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px}
+.ca-steps li:last-child b{background:var(--red)}
+
+/* 카드 */
+.ca-card{background:#fff;padding:0 6px}
+.ca-form{max-width:860px;margin:0 auto}
+.ca-setup{margin:0 0 16px;padding:12px 14px;border:1px solid #f0d48a;background:var(--amber-bg);color:#7a5800;border-radius:8px;font-size:14px}
+.ca-req{color:var(--red);font-weight:800}
+.ca-req-note{margin:0 0 14px;font-size:13.5px;color:var(--muted);text-align:right}
+
+.ca-group{margin:0 0 22px;padding:18px 20px 6px;border:1px solid var(--line);border-radius:10px;min-width:0}
+.ca-group legend{display:flex;align-items:center;gap:8px;padding:0 8px;margin-left:-8px;font-size:17px;font-weight:800;color:var(--navy)}
+.ca-group legend b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:6px;background:var(--navy);color:#fff;font-size:14px}
+.ca-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+.ca-field{margin:0 0 16px;min-width:0}
+.ca-field > label,.ca-label{display:block;margin-bottom:6px;font-weight:700;color:var(--ink);font-size:15px}
+.ca-label small{font-weight:500;color:var(--muted)}
+.ca-field input[type=text],.ca-field input[type=tel],.ca-field input[type=email],.ca-field input[type=date],.ca-field select{
+  width:100%;height:46px;padding:0 12px;border:1px solid #c9d1dc;border-radius:8px;background:#fff;font:inherit;font-size:15px;color:var(--ink)}
+.ca-field input:focus,.ca-field select:focus{outline:none;border-color:var(--b1);box-shadow:0 0 0 3px rgba(0,128,197,.18)}
+.ca-form.was-checked :invalid{border-color:var(--red);background:#fffafa}
+.ca-msg{margin:6px 0 0;color:var(--red);font-size:13.5px;font-weight:700}
+
+/* 신청 유형 칩 */
+.ca-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ca-chip{position:relative;cursor:pointer}
+.ca-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.ca-chip span{display:inline-flex;align-items:center;min-height:42px;padding:0 18px;border:1px solid #c9d1dc;border-radius:99px;background:#fff;font-weight:700;color:var(--text);transition:.15s}
+.ca-chip:hover span{border-color:var(--b1)}
+.ca-chip input:checked + span{background:var(--navy);border-color:var(--navy);color:#fff}
+.ca-chip input:focus-visible + span{outline:3px solid #ffb300;outline-offset:2px}
+.ca-form.was-checked .ca-chips:has(input:invalid) span{border-color:var(--red)}
+
+/* 인증 스킴 체크 */
+.ca-schemes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ca-check{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:14px;line-height:1.35}
+.ca-check:hover{border-color:#9eb8d9}
+.ca-check input{width:17px;height:17px;flex:0 0 auto;margin:0;accent-color:var(--navy)}
+.ca-check:has(input:checked){border-color:var(--navy);background:var(--sky);color:var(--ink);font-weight:700}
+
+/* 제출 서류 안내 */
+.ca-docs{margin:0 0 12px;padding:14px 16px;border-left:5px solid var(--b1);background:var(--sky);border-radius:0 8px 8px 0;font-size:14px}
+.ca-docs__empty{margin:0;color:var(--muted)}
+.ca-docs__hd{margin-bottom:6px;color:var(--navy)}
+.ca-docs__hd b{font-size:15px}
+.ca-docs__hd span{color:var(--muted);font-size:13px}
+.ca-docs ul{margin:0 0 6px;padding-left:20px;line-height:1.7}
+.ca-docs__note{margin:0 0 6px;color:var(--red);font-size:13.5px}
+.ca-docs__link{margin:0;font-size:13.5px}
+.ca-docs__link a{font-weight:700}
+.ca-docs__link span{color:var(--muted)}
+.ca-drop{margin-top:4px}
+
+/* 진행 · 버튼 */
+.ca-progress{margin:0 0 14px;padding:12px 14px;border:1px solid var(--sky2);background:#f7fbfe;border-radius:8px;font-size:14px;color:var(--navy)}
+.ca-progress p{margin:0 0 8px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ca-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:4px 0 16px}
+.ca-actions .of-submit{min-width:240px}
+.ca-foot{list-style:none;margin:0 0 14px;padding:14px 0 0;border-top:1px dashed var(--line);font-size:13px;color:var(--muted);line-height:1.7}
+
+/* 접수 완료 팝업 */
+.ca-dialog{width:min(440px,calc(100vw - 32px));border:0;border-top:5px solid var(--red);border-radius:14px;padding:30px 26px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.ca-dialog::backdrop{background:rgba(10,20,40,.55)}
+.ca-dialog__icon{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--navy);color:#fff;font-size:30px;font-weight:800;margin-bottom:10px}
+.ca-dialog h2{font-size:22px;color:var(--ink);margin:0 0 10px}
+.ca-dialog__no{margin:0 0 8px;font-size:14px;color:var(--muted)}
+.ca-dialog__no b{color:var(--navy);font-size:15px;letter-spacing:.3px}
+.ca-dialog p{margin:0 0 18px;color:var(--text);font-size:15px}
+.ca-dialog .btn{min-width:140px}
+
+@media (max-width:960px){
+  .quick{grid-template-columns:1fr 1fr}
+  .q0{grid-column:1 / -1}
+  .ca-schemes{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+  .ca-steps{grid-template-columns:1fr 1fr}
+  .ca-body{padding:16px 12px 2px}
+  .ca-card{padding:0}
+  .ca-group{padding:14px 12px 4px}
+  .ca-grid,.ca-schemes{grid-template-columns:1fr}
+  .ca-actions .btn{width:100%}
+}
+
+/* '교육 신청' 탭 안 교육 과정 안내 */
+.edu-guide{padding:22px 24px 6px;border-bottom:1px solid var(--line)}
+.edu-guide__hd{margin-bottom:14px}
+.edu-guide__hd h4{margin:0 0 4px;font-size:18px;color:var(--navy);padding-left:10px;border-left:4px solid var(--b1)}
+.edu-guide__hd p{margin:0;color:var(--muted);font-size:14px}
+.edu-guide .howto{margin-top:18px}
+@media (max-width:640px){ .edu-guide{padding:16px 12px 4px} }

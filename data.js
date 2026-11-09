@@ -68,8 +68,15 @@ KAR.accounts = [
  *       '찾아오시는 길' 탭만 위 KAR.contact 로 자동 구성됩니다. */
 
 /* ==========================================================================
- *  3. 온라인 신청 (FormSubmit — 입력값과 첨부파일을 담당자 메일로 전송)
+ *  3. 온라인 신청 (교육 · 자격시험 · 자격인증서 발급 · 영수증)
  * --------------------------------------------------------------------------
+ *  입력값 → FormSubmit → 담당자 메일
+ *  첨부파일 → 구글 드라이브(Apps Script)의 신청별 폴더에 저장 → 메일에는 드라이브 링크
+ *     · 교육 신청   → [edu] KAR-교육 신청        / 메일 edu@kar.re.kr
+ *     · 자격시험    → [0159] KAR-자격시험 신청    / 메일 kar0159@kar.re.kr
+ *     · 영수증      → [0157] KAR-영수증 신청ㆍ출력 / 메일 kar0157@kar.re.kr
+ *     · 자격인증서 발급 : 첨부 없음 / 메일 kar0159 (참조 kar0154)
+ *     (드라이브 폴더 이름은 docs/apps-script/Code.gs 의 FOLDERS, 웹 앱 URL 은 아래 KAR.certApply.appsScriptUrl 을 함께 사용)
  *  ★ 처음 한 번 해야 할 일 : docs/2_FormSubmit_온라인신청_설정_가이드.md 참고
  *
  *  [항목별 설명]
@@ -79,7 +86,7 @@ KAR.accounts = [
  *               예) "https://formsubmit.co/ajax/7f3a9c1e5b2d4a6f8e0c1b3d5a7f9e2c"
  *  - cc       : 함께 받을 주소(참조). 여러 개면 쉼표로 구분. 없으면 ""
  *  - subject  : 받는 메일의 제목
- *  - attach   : true 이면 드래그 앤 드롭 파일 첨부 영역 표시 (합계 10MB 이하)
+ *  - attach   : true 이면 드래그 앤 드롭 파일 첨부 영역 표시 (합계 15MB 이하 · 구글 드라이브에 저장)
  *  - fields   : 입력 항목. 기존 구글 폼(이전 신청서)과 같은 순서·항목입니다.
  *      type  : "text"(한 줄) · "textarea"(여러 줄) · "date"(날짜) · "email"
  *              "select"(목록) · "radio"(하나 선택) · "agree"(동의 체크)
@@ -90,9 +97,9 @@ KAR.accounts = [
  *  - privacy  : 폼 아래 ※ 안내 문구 (신청별)
  * ========================================================================== */
 KAR.formSubmit = {
-  maxTotalMB: 10,      // FormSubmit 첨부 한도 : 한 번 신청에 합계 10MB
-  maxFiles: 5,         // 한 번에 첨부할 수 있는 파일 수
-  accept: [".hwp", ".hwpx", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".zip"],
+  maxTotalMB: 15,      // 첨부 한도 : 신청 1건 합계 15MB (넘으면 제출 전 경고) — Code.gs 의 MAX_TOTAL_MB 와 같게
+  maxFiles: 0,         // 최대 파일 수 (0 = 제한 없음)
+  accept: [".hwp", ".hwpx", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".zip"],   // Code.gs 의 ALLOWED_EXT 와 같게
   template: "table",   // 받는 메일 모양 : "table"(표) · "basic" · "box"
   mode: "ajax",        // "ajax" = 페이지 이동 없이 전송(기본) · "post" = 예비 방식(FormSubmit 화면을 거쳐 돌아옴)
 };
@@ -100,7 +107,7 @@ KAR.formSubmit = {
 // 모든 신청 폼 아래에 공통으로 붙는 ※ 안내 (1번째 · 3번째 줄). 2번째 줄은 신청별 privacy.
 KAR.formFootnotes = {
   first: "※ 입력하신 정보는 해당 신청 처리 목적으로만 이용됩니다. 신청서가 제출되지 않으면 회사 보안 설정 때문일 수 있으니 아래 담당자 이메일로 신청서를 보내 주세요.",
-  last:  "※ 신청 시, 개인정보 이용에 동의한 것으로 간주하며, FormSubmit은 접수된 신청 내용을 30일 동안 FormSubmit 서버에 보관합니다(첨부파일은 보관하지 않음).",
+  last:  "※ 신청 시, 개인정보 이용에 동의한 것으로 간주하며, FormSubmit은 접수된 신청 내용을 30일 동안 FormSubmit 서버에 보관합니다(첨부파일은 한국심사자격인증원 구글 드라이브에 30일간 보관 후 자동 삭제).",
 };
 
 KAR.onlineForms = [
@@ -109,7 +116,7 @@ KAR.onlineForms = [
     id: "edu",
     title: "교육 신청",
     desc: "KAR 교육과정(자격갱신·세미나·심사경력인정 등) 참가 신청입니다. 신청 후 참가비를 입금해 주세요.",
-    endpoint: "https://formsubmit.co/ajax/kar0156@kar.re.kr",
+    endpoint: "https://formsubmit.co/ajax/edu@kar.re.kr",
     cc: "",
     fallbackEmail: "edu@kar.re.kr",   // 제출이 안 될 때 안내할 메일 주소
     subject: "[홈페이지 온라인 신청] 교육 신청",
@@ -294,7 +301,10 @@ KAR.certApply = {
   //      https://script.google.com/macros/s/【배포 ID】/exec  형태입니다.
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbxD2tu5wY4KnlgUeuBkPcu-uteF1T-u3tmCVzzjzZEhTdi-4P-tiyo2V9N5LR7lsClT/exec",
 
+  //      ※ 이 주소는 교육 · 자격시험 · 영수증 신청의 첨부파일 업로드에도 함께 쓰입니다.
+
   // ★2. 신청 유형별 접수 메일 = FormSubmit Action 이메일 주소
+  //      (첨부파일은 드라이브의 '[0159] KAR-자격인증신청(유형)' · '[0156] KAR-자격인증신청(유형)' 폴더에 저장)
   //      (활성화 후 받은 임의 문자열로 바꿔도 됨 · 같은 주소를 쓰는 유형은 같은 값)
   routes: {
     "신규 등록":       { to: "kar0159@kar.re.kr" },

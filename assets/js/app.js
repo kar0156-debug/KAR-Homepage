@@ -174,8 +174,8 @@
      - 이 영역은 고칠 필요가 없습니다. 주소·항목 변경은 data.js 에서 하세요. */
   var selectApplyTab;
   var FS = K.formSubmit || {};
-  var MAX_BYTES = (FS.maxTotalMB || 10) * 1024 * 1024;
-  var MAX_FILES = FS.maxFiles || 5;
+  var MAX_BYTES = (FS.maxTotalMB || 15) * 1024 * 1024;
+  var MAX_FILES = FS.maxFiles || 0;   // 0 = 개수 제한 없음
   var ACCEPT = FS.accept || [];
   function fmtSize(b) {
     if (b < 1024) return b + ' B';
@@ -237,7 +237,7 @@
           '<span class="dropzone__icon" aria-hidden="true"></span>' +
           '<strong>파일을 이곳에 끌어다 놓거나 <u>클릭하여 선택</u>하세요</strong>' +
           '<span class="dropzone__hint" id="' + f.id + '-fh">' + esc(f.attachHint || '') + (f.attachHint ? ' · ' : '') +
-            '최대 ' + MAX_FILES + '개, 합계 ' + (FS.maxTotalMB || 10) + 'MB 이하 · ' + esc(ACCEPT.join(' ').replace(/\./g, '').toUpperCase()) + '</span>' +
+            (MAX_FILES ? '최대 ' + MAX_FILES + '개, ' : '') + '합계 ' + (FS.maxTotalMB || 15) + 'MB 이하 · ' + esc(ACCEPT.join(' ').replace(/\./g, '').toUpperCase()) + '</span>' +
         '</div>' +
         '<ul class="filelist" aria-live="polite"></ul>' +
         '<div class="filemeter" hidden><span class="filemeter__bar"><i></i></span><span class="filemeter__txt"></span></div>' +
@@ -358,19 +358,25 @@
       meter.hidden = !files.length;
       $('i', meter).style.width = pct + '%';
       meter.classList.toggle('is-full', pct >= 90);
-      $('.filemeter__txt', meter).textContent = '합계 ' + fmtSize(t) + ' / ' + (FS.maxTotalMB || 10) + 'MB (' + files.length + '/' + MAX_FILES + '개)';
+      $('.filemeter__txt', meter).textContent = '합계 ' + fmtSize(t) + ' / ' + (FS.maxTotalMB || 15) + 'MB (' + files.length + (MAX_FILES ? '/' + MAX_FILES : '') + '개)';
     }
     function addFiles(fl) {
-      var msgs = [];
+      var msgs = [], over = '';
       Array.prototype.forEach.call(fl, function (file) {
         var ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
         if (ACCEPT.length && ACCEPT.indexOf(ext) < 0) { msgs.push('「' + file.name + '」은(는) 첨부할 수 없는 형식입니다.'); return; }
-        if (files.length >= MAX_FILES) { msgs.push('파일은 최대 ' + MAX_FILES + '개까지 첨부할 수 있습니다.'); return; }
-        if (total() + file.size > MAX_BYTES) { msgs.push('「' + file.name + '」을(를) 더하면 합계 ' + (FS.maxTotalMB || 10) + 'MB를 넘습니다. 큰 파일은 담당자 이메일로 따로 보내 주세요.'); return; }
+        if (!file.size) { msgs.push('「' + file.name + '」은(는) 빈 파일입니다.'); return; }
+        if (MAX_FILES && files.length >= MAX_FILES) { msgs.push('파일은 최대 ' + MAX_FILES + '개까지 첨부할 수 있습니다.'); return; }
         if (files.some(function (x) { return x.name === file.name && x.size === file.size; })) return;
+        if (total() + file.size > MAX_BYTES) {   // 첨부 합계 한도 초과 → 경고 알림
+          if (!over) over = '「' + file.name + '」을(를) 더하면 첨부파일 합계가 ' + fmtSize(total() + file.size) + '로, 신청 1건당 한도(' +
+            (FS.maxTotalMB || 15) + 'MB)를 넘습니다.\n\n용량을 줄이거나, 큰 파일은 ' + (f.fallbackEmail || C.email) + ' 로 따로 보내 주세요.';
+          return;
+        }
         files.push(file);
       });
       renderFiles();
+      if (over) alert(over);
       if (msgs.length) toast(msgs[0]);
     }
     if (dz) {
@@ -391,8 +397,24 @@
     }
 
     // --- 제출 ---
-    form.addEventListener('submit', function (e) {
+    //   첨부파일이 있으면 ① 구글 드라이브(Apps Script)에 먼저 올리고 ② 받은 링크를 메일 항목에 넣어 ③ FormSubmit 으로 보냅니다.
+    function applicantName() {
+      var c = $$('input[type=text]:not(:disabled)', form).filter(function (x) { return /이름|성명|회사명/.test(x.name) && x.value.trim(); })[0];
+      return c ? c.value.trim() : '';
+    }
+    function errMsg(m) {
+      var tail = ' 계속 안 되면 ' + C.tel + ' 로 연락하시거나 신청서를 ' + (f.fallbackEmail || C.email) + ' 로 보내 주세요.';
+      if (/activ/i.test(m)) return '접수 메일 주소의 사용 승인(활성화)이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.' + tail;
+      if (m === 'SCRIPT_TOO_LARGE') return '첨부파일 합계가 ' + (FS.maxTotalMB || 15) + 'MB를 넘습니다. 용량을 줄여 다시 제출해 주세요.' + tail;
+      if (m === 'SCRIPT_BAD_TYPE') return '첨부할 수 없는 형식의 파일이 있습니다.' + tail;
+      if (m === 'SCRIPT_TOO_MANY_REQUESTS') return '지금 신청이 많아 잠시 접수가 제한되었습니다. 10분 뒤 다시 시도해 주세요.' + tail;
+      if (m === 'SCRIPT_NOT_CONFIGURED') return '첨부파일 저장 기능이 아직 설정되지 않았습니다.' + tail;
+      if (/^SCRIPT_|^LINK_MISSING|^READ_FAILED/.test(m)) return '첨부파일 업로드 중 문제가 발생해 신청서를 보내지 않았습니다. 잠시 후 다시 시도해 주세요.' + tail;
+      return '제출하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.' + tail;
+    }
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
+      if (form.getAttribute('aria-busy') === 'true') return;
       err.hidden = true;
       form.classList.add('was-checked');
       if (!form.checkValidity()) {
@@ -402,34 +424,43 @@
         if (bad) { bad.focus(); if (bad.reportValidity) bad.reportValidity(); }
         return;
       }
+      if (total() > MAX_BYTES) { alert('첨부파일 합계가 ' + fmtSize(total()) + '로, 신청 1건당 한도(' + (FS.maxTotalMB || 15) + 'MB)를 넘습니다. 용량을 줄여 주세요.'); return; }
       var fd = new FormData(form);   // 숨긴(비활성) 항목은 자동으로 빠짐
+      if (fd.get('_honey')) return;   // 로봇으로 판단 — 조용히 무시
       // 수신 이메일(회신 주소) 항목은 메일 표에 원래 이름으로도 표시
       $$('input[name="email"]:not(:disabled)', form).forEach(function (x) { if (x.dataset.label && x.value) fd.append(x.dataset.label, x.value); });
-      files.forEach(function (file, i) { fd.append(i === 0 ? 'attachment' : 'attachment' + (i + 1), file, file.name); });
-      if (fd.get('_honey')) return;   // 로봇으로 판단 — 조용히 무시
       btn.disabled = true; form.setAttribute('aria-busy', 'true'); btn.classList.add('is-loading');
       btnTxt.textContent = '제출 중...';
-      if ((FS.mode || 'ajax') === 'post') { postSubmit(fd, form.dataset.endpoint, f.id); return; }
-      fetch(form.dataset.endpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } })
-        .then(function (r) { return r.json().catch(function () { return { success: r.ok ? 'true' : 'false' }; }); })
-        .then(function (j) {
-          var ok = j && (j.success === true || j.success === 'true');
-          if (!ok) throw new Error((j && j.message) || '전송 실패');
-          form.reset(); files = []; renderFiles();
-          form.hidden = true; done.hidden = false; done.focus();
-        })
-        .catch(function (x) {
-          var m = String((x && x.message) || '');
-          err.textContent = (/activ/i.test(m)
-            ? '접수 메일 주소의 사용 승인(활성화)이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.'
-            : '제출하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.') +
-            ' 계속 안 되면 ' + C.tel + ' 로 연락하시거나 신청서를 ' + (f.fallbackEmail || C.email) + ' 로 보내 주세요.';
-          err.hidden = false;
-        })
-        .then(function () {
+      var navigating = false;
+      try {
+        var applyNo = window.KARDrive ? KARDrive.newApplyNo() : '';
+        if (applyNo) fd.append('접수번호', applyNo);
+        if (files.length) {
+          if (!window.KARDrive) throw new Error('SCRIPT_NOT_CONFIGURED');
+          var drive = await KARDrive.upload({ category: f.id, applyNo: applyNo, name: applicantName(), files: files });   // ①
+          fd.append('첨부파일_폴더', drive.folderUrl);                                                                      // ②
+          fd.append('첨부파일_링크', drive.files.map(function (x) { return x.url; }).join(' , '));
+          drive.files.forEach(function (x, i) {
+            fd.append('첨부파일' + (i + 1) + '_이름', files[i].name + ' (' + fmtSize(files[i].size) + ')');
+            fd.append('첨부파일' + (i + 1) + '_링크', x.url);
+          });
+          fd.append('파일 보관 안내', '링크는 담당자 구글 계정으로 로그인해야 열립니다. 업로드 후 ' + ((K.certApply || {}).keepDays || 30) + '일이 지나면 자동 삭제되니 기간 안에 내려받아 보관해 주세요.');
+        }
+        if ((FS.mode || 'ajax') === 'post') { navigating = true; postSubmit(fd, form.dataset.endpoint, f.id); return; }
+        var r = await fetch(form.dataset.endpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } });   // ③
+        var j = await r.json().catch(function () { return { success: r.ok ? 'true' : 'false' }; });
+        if (!(j && (j.success === true || j.success === 'true'))) throw new Error((j && j.message) || '전송 실패');
+        form.reset(); files = []; renderFiles();
+        form.hidden = true; done.hidden = false; done.focus();
+      } catch (x) {
+        err.textContent = errMsg(String((x && x.message) || ''));
+        err.hidden = false;
+      } finally {
+        if (!navigating) {
           btn.disabled = false; form.removeAttribute('aria-busy'); btn.classList.remove('is-loading');
           btnTxt.textContent = '신청서 제출';
-        });
+        }
+      }
     });
     $('.of-again', done).addEventListener('click', function () {
       done.hidden = true; form.hidden = false; updateVisibility(form);

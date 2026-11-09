@@ -6,8 +6,8 @@
 - GitHub 가입·업로드·Pages·도메인 연결·게시글 올리기 → [`docs/1_GitHub_가입_업로드_Pages_가이드.md`](docs/1_GitHub_가입_업로드_Pages_가이드.md)
 - 온라인 신청(FormSubmit) 활성화·접수 주소 설정 → [`docs/2_FormSubmit_온라인신청_설정_가이드.md`](docs/2_FormSubmit_온라인신청_설정_가이드.md)
 - 온라인 신청 폼 항목·문구 고치기 → [`docs/3_온라인신청_폼_소스_설명.md`](docs/3_온라인신청_폼_소스_설명.md)
-- ★ 자격인증 신청(Firebase Storage + FormSubmit) 설정 → [`docs/4_Firebase_FormSubmit_자격인증신청_연동_가이드.md`](docs/4_Firebase_FormSubmit_자격인증신청_연동_가이드.md)
-- 자격인증 신청 소스 설명 → [`docs/5_자격인증신청_소스_설명.md`](docs/5_자격인증신청_소스_설명.md) · 보안 규칙 원본 [`docs/firebase/storage.rules`](docs/firebase/storage.rules)
+- ★ 자격인증 신청(Apps Script + 구글 드라이브 + FormSubmit) 설정 → [`docs/4_AppsScript_구글드라이브_자격인증신청_연동_가이드.md`](docs/4_AppsScript_구글드라이브_자격인증신청_연동_가이드.md)
+- 자격인증 신청 소스 설명 → [`docs/5_자격인증신청_소스_설명.md`](docs/5_자격인증신청_소스_설명.md) · Apps Script 원본 [`docs/apps-script/Code.gs`](docs/apps-script/Code.gs)
 
 ---
 
@@ -23,8 +23,8 @@ KAR-Temp-Homepage/
 ├─ 404.html                옛 주소(/kar_renewal/...)로 들어오면 임시 홈페이지로 안내
 ├─ assets/                 디자인(css) · 동작(js) · 로고(img) — 수정 불필요
 │   ├─ css/cert-apply.css  자격인증 신청 디자인
-│   └─ js/cert-apply.js    자격인증 신청 동작(Firebase 업로드 → FormSubmit 전송)
-├─ docs/                   운영 가이드 ①~⑤ · firebase/storage.rules(보안 규칙 원본)
+│   └─ js/cert-apply.js    자격인증 신청 동작(Apps Script → 구글 드라이브 → FormSubmit 전송)
+├─ docs/                   운영 가이드 ①~⑤ · apps-script/Code.gs(구글 드라이브 저장용 Apps Script)
 ├─ content/                게시물 본문 HTML
 │   └─ img/                본문에 들어간 이미지
 └─ files/                  내려받는 파일
@@ -99,8 +99,8 @@ maintenanceStart: "2026. 11. 10.(화)",
 ### 2-5-1. 자격인증 신청 (증빙서류 업로드) 바꾸기
 '온라인 신청' 섹션의 첫 번째 탭(index.html 의 `panel-qual`)입니다.
 `data.js` → `KAR.certApply` 에서 고칩니다. (④·⑤ 가이드 참고)
-- ★`firebaseConfig.storageBucket` : Firebase 저장소 주소 · ★`routes` : 신청 유형별 접수 메일(등록·승급·범위추가 → kar0159, 갱신·전환 → kar0156)
-- `maxFiles`(3) · `maxFileMB`(30) · `accept` : 첨부 제한 — 바꾸면 Firebase 보안 규칙도 함께 변경
+- ★`appsScriptUrl` : Apps Script 웹 앱 URL · ★`routes` : 신청 유형별 접수 메일(등록·승급·범위추가 → kar0159, 갱신·전환 → kar0156)
+- `maxTotalMB`(15) · `maxFiles`(0 = 제한 없음) · `accept` : 첨부 제한 — 바꾸면 Code.gs 의 MAX_TOTAL_MB · ALLOWED_EXT 도 함께 변경
 - `types` · `grades` · `schemes` : 선택 항목 · `footnotes` : 폼 아래 ※ 안내
 
 ### 2-6. 자격인증기준 올리기 (GitHub 저장소 연동)
@@ -148,8 +148,8 @@ maintenanceStart: "2026. 11. 10.(화)",
 ## 5. 보안 설계 요약
 - 서버 측 코드·DB·로그인·회원가입 없음 (GitHub Pages는 정적 파일만 제공)
 - 온라인 신청은 FormSubmit 을 거쳐 담당자 메일로만 전달되며 홈페이지에는 저장되지 않음 (FormSubmit 서버 30일 보관, 첨부파일 미보관)
-- 자격인증 신청 증빙서류는 Firebase Storage(미국 리전)에 저장 — 로그인 없이 '새 파일 올리기'만 허용, 목록·삭제 금지, 30일 후 자동 삭제
-- Content-Security-Policy 적용: 외부 스크립트 차단, 데이터 전송은 formsubmit.co · firebasestorage.googleapis.com 으로만 허용, 외부 화면 삽입 차단
+- 자격인증 신청 증빙서류는 기관 구글 드라이브(비공개, 담당자 계정만 열람)에 저장 — Apps Script 웹 앱은 파일 올리기만 가능, 30일 후 자동 휴지통
+- Content-Security-Policy 적용: 외부 스크립트 차단, 데이터 전송은 formsubmit.co · script.google.com(googleusercontent.com) 으로만 허용, 외부 화면 삽입 차단
 - HTTPS 강제(Enforce HTTPS) 적용 권장
 
 ## 6. 용량 참고

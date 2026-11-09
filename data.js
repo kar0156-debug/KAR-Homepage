@@ -280,29 +280,22 @@ KAR.onlineForms = [
 
 
 /* ==========================================================================
- *  3-1. 자격인증 신청 (Firebase Storage + FormSubmit)  ★ 메인 기능
+ *  3-1. 자격인증 신청 (Google Apps Script + 구글 드라이브 + FormSubmit)  ★ 메인 기능
  * --------------------------------------------------------------------------
- *  처리 순서 : ① 증빙서류 → Firebase Storage 에 업로드(로그인 없음)
- *              ② 업로드된 파일의 다운로드 링크 + 신청 내용 → FormSubmit → 담당자 메일
- *  설정 방법 : docs/4_Firebase_FormSubmit_자격인증신청_연동_가이드.md
+ *  처리 순서 : ① 증빙서류(Base64) → Apps Script 웹 앱 → 구글 드라이브 폴더에 저장(신청자 로그인 없음)
+ *              ② 돌려받은 드라이브 폴더·파일 링크 + 신청 내용 → FormSubmit → 담당자 메일
+ *  설정 방법 : docs/4_AppsScript_구글드라이브_자격인증신청_연동_가이드.md
+ *  Apps Script 코드 : docs/apps-script/Code.gs
  *
  *  ▶ 바꿀 곳은 아래 ★ 표시 3곳뿐입니다.
  * ========================================================================== */
 KAR.certApply = {
-  // ★1. Firebase 설정값 (Firebase 콘솔 → 프로젝트 설정 → 일반 → 내 앱 → SDK 설정 및 구성 → 'Config')
-  //      이 코드는 Storage 업로드만 하므로 storageBucket 이 반드시 필요합니다.
-  //      나머지 값은 확인·보관용입니다(비워 두어도 동작).
-  firebaseConfig: {
-    apiKey:            "여기에_apiKey_붙여넣기",
-    authDomain:        "프로젝트ID.firebaseapp.com",
-    projectId:         "프로젝트ID",
-    storageBucket:     "프로젝트ID.firebasestorage.app",   // ← ★ 필수
-    messagingSenderId: "",
-    appId:             "",
-  },
+  // ★1. Apps Script 웹 앱 URL (Apps Script → 배포 → 새 배포 → 웹 앱 → 배포 후 나오는 'URL')
+  //      https://script.google.com/macros/s/【배포 ID】/exec  형태입니다.
+  appsScriptUrl: "https://script.google.com/macros/s/여기에_배포ID_붙여넣기/exec",
 
-  // ★2. 신청 유형별 접수 메일 (FormSubmit 주소 · 활성화 후 받은 임의 문자열로 바꿔도 됨)
-  //      to : 받는 주소 / 같은 주소를 쓰는 유형은 같은 값을 적습니다.
+  // ★2. 신청 유형별 접수 메일 = FormSubmit Action 이메일 주소
+  //      (활성화 후 받은 임의 문자열로 바꿔도 됨 · 같은 주소를 쓰는 유형은 같은 값)
   routes: {
     "신규 등록":       { to: "kar0159@kar.re.kr" },
     "승급":            { to: "kar0159@kar.re.kr" },
@@ -318,16 +311,15 @@ KAR.certApply = {
   //   "ajax" : 페이지 이동 없이 전송 → "접수가 완료되었습니다." 팝업 (기본)
   //   "post" : 일반 폼 제출(페이지가 잠시 FormSubmit 으로 갔다가 돌아옴) — ajax 로 메일이 안 올 때 예비용
   sendMode: "ajax",
-  // 시험용 : true 로 바꾸면 폼 아래에 처리 과정(업로드 결과 · 다운로드 URL · 전송 값)이 표시됩니다.
+  // 시험용 : true 로 바꾸면 폼 아래에 처리 과정(드라이브 저장 결과 · 링크 · 전송 값)이 표시됩니다.
   //          시험이 끝나면 꼭 false 로 돌려 두세요.
   debug: false,
 
-  // 첨부 제한 — Firebase 보안 규칙(storage.rules)과 같은 값으로 맞춥니다.
-  maxFiles: 3,                      // 신청 1건당 최대 파일 수 (최소 1개 필수)
-  maxFileMB: 30,                    // 파일 1개당 최대 용량(MB)
+  // 첨부 제한 — Apps Script(Code.gs) 의 MAX_TOTAL_MB · ALLOWED_EXT 와 같은 값으로 맞춥니다.
+  maxTotalMB: 15,                   // 신청 1건 첨부 합계 한도(MB) — 넘으면 제출 전에 경고
+  maxFiles: 0,                      // 최대 파일 수 (0 = 제한 없음, 최소 1개는 필수)
   accept: [".pdf", ".hwp", ".docx", ".xlsx", ".jpg"],
-  storageFolder: "applications",    // Storage 안의 저장 폴더 이름
-  keepDays: 30,                     // 파일 자동 삭제 기간(일) — 안내·메일 문구용(실제 삭제는 수명 주기 규칙)
+  keepDays: 30,                     // 보관 기간(일) — 메일 안내 문구용(실제 삭제는 Code.gs 의 자동 정리)
 
   // 선택 항목
   types:  ["신규 등록", "승급", "갱신", "전환", "심사수행범위 추가"],
@@ -342,7 +334,7 @@ KAR.certApply = {
   // 폼 아래 ※ 안내
   footnotes: [
     "※ 입력하신 정보와 증빙서류는 자격인증 심사 목적으로만 이용됩니다.",
-    "※ 신청 시, 개인정보 이용에 동의한 것으로 간주하며, 첨부파일은 Google Firebase 서버에 30일간 보관 후 자동 삭제되고, 신청 내용은 FormSubmit 서버에 30일간 보관됩니다.",
+    "※ 신청 시, 개인정보 이용에 동의한 것으로 간주하며, 첨부파일은 한국심사자격인증원 구글 드라이브에 30일간 보관 후 자동 삭제되고, 신청 내용은 FormSubmit 서버에 30일간 보관됩니다.",
   ],
 };
 

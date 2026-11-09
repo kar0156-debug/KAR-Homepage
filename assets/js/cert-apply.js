@@ -1,22 +1,23 @@
 /* ==========================================================================
-   한국심사자격인증원 — 자격인증 신청 (Firebase Storage + FormSubmit)
+   한국심사자격인증원 — 자격인증 신청 (Google Apps Script + 구글 드라이브 + FormSubmit)
    --------------------------------------------------------------------------
    ┌ 관리자가 바꾸는 곳 (이 파일은 고치지 않습니다) ───────────────────────┐
-   │ ★ Firebase Config      : data.js → KAR.certApply.firebaseConfig       │
-   │                          (storageBucket 필수)                          │
-   │ ★ FormSubmit 받는 메일 : data.js → KAR.certApply.routes               │
-   │                          (신청 유형별 Action 이메일 주소)               │
+   │ ★ Apps Script 웹 앱 URL : data.js → KAR.certApply.appsScriptUrl       │
+   │ ★ FormSubmit 받는 메일  : data.js → KAR.certApply.routes              │
+   │                           (신청 유형별 Action 이메일 주소)              │
+   │ ★ 드라이브 저장 폴더    : docs/apps-script/Code.gs → CONFIG.FOLDER_ID  │
    └────────────────────────────────────────────────────────────────────────┘
 
    처리 순서 (async / await 로 한 단계씩 끝난 뒤 다음 단계 진행)
-     ① 입력값 · 첨부파일 검사
-     ② 파일을 Firebase Storage 에 하나씩 업로드  → await
-     ③ 업로드된 파일마다 다운로드 URL 확보         → await
-        (URL 이 하나라도 없으면 메일을 보내지 않고 오류 안내)
-     ④ 다운로드 URL 을 폼의 숨김 input 에 대입
-          <input type="hidden" name="첨부파일_링크">        : 전체 링크
-          <input type="hidden" name="첨부파일1_링크"> …     : 파일별 링크
-     ⑤ 숨김 input 까지 채워진 폼 전체(new FormData(form))를 FormSubmit 으로 전송 → await
+     ① 입력값 · 첨부파일 검사 (확장자 / 첨부 합계 15MB 초과 시 경고)
+     ② 첨부파일을 Base64 로 변환                         → await
+     ③ Apps Script 웹 앱으로 POST → 구글 드라이브 저장    → await
+        (응답 JSON : 신청 폴더 링크 + 파일별 링크)
+     ④ 드라이브 링크를 폼의 숨김 input 에 대입
+          <input type="hidden" name="첨부파일_폴더">  : 신청 폴더 링크
+          <input type="hidden" name="첨부파일_링크">  : 파일 링크 전체
+          <input type="hidden" name="첨부파일1_링크"> … : 파일별 링크
+     ⑤ 폼 전체(new FormData(form))를 FormSubmit 으로 전송 → await → 담당자 메일
      ⑥ "접수가 완료되었습니다." 팝업
    ========================================================================== */
 (function () {
@@ -25,11 +26,11 @@
   var CFG = K.certApply;
   if (!CFG) return;
 
-  var FIREBASE_API = 'https://firebasestorage.googleapis.com/v0/b/';
   var FORMSUBMIT = 'https://formsubmit.co/';
   var MB = 1024 * 1024;
+  var MAX_TOTAL = (CFG.maxTotalMB || 15) * MB;
 
-  // 확장자 → 업로드 시 지정할 파일 형식(MIME). Firebase 보안 규칙(storage.rules)과 같아야 합니다.
+  // 확장자 → 파일 형식(MIME). 드라이브에 저장할 때 파일 종류로 쓰입니다.
   var MIME = {
     '.pdf':  'application/pdf',
     '.hwp':  'application/x-hwp',
@@ -58,6 +59,12 @@
     t.textContent = msg; t.classList.add('show');
     clearTimeout(toast.timer); toast.timer = setTimeout(function () { t.classList.remove('show'); }, 3200);
   }
+  function totalSize(list) { return list.reduce(function (s, f) { return s + f.size; }, 0); }
+  function overLimitMessage(total) {
+    return '첨부파일 합계가 ' + fmtSize(total) + '로, 신청 1건당 한도(' + (CFG.maxTotalMB || 15) + 'MB)를 넘습니다.\n\n' +
+      '· 스캔 해상도를 낮추거나 PDF 를 압축해 용량을 줄여 주세요.\n' +
+      '· 그래도 크면 일부 서류는 ' + CFG.fallbackEmail + ' 로 보내 주세요.';
+  }
 
   /* ---------- 시험용 처리 기록 (data.js → KAR.certApply.debug: true 일 때만 화면 표시) ---------- */
   function log(msg, data) {
@@ -72,9 +79,8 @@
   }
 
   /* ---------- 설정 확인 ---------- */
-  var bucket = String((CFG.firebaseConfig || {}).storageBucket || '').trim()
-    .replace(/^gs:\/\//, '').replace(/\/+$/, '');
-  var configured = !!bucket && !/프로젝트ID|여기에/.test(bucket);
+  var scriptUrl = String(CFG.appsScriptUrl || '').trim();
+  var configured = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(scriptUrl);
 
   /* ---------- 신청 유형 · 등급별 제출 서류 안내 (data.js → KAR.requiredDocs 재사용) ---------- */
   function findRows(word) {
@@ -124,7 +130,8 @@
     $('ca-schemes').innerHTML = (CFG.schemes || []).map(function (s) {
       return '<label class="ca-check"><input type="checkbox" data-scheme value="' + esc(s) + '"><span>' + esc(s) + '</span></label>';
     }).join('');
-    $('ca-drop-hint').textContent = (CFG.accept || []).join(' ') + ' · 파일당 ' + CFG.maxFileMB + 'MB 이하 · 최대 ' + CFG.maxFiles + '개';
+    $('ca-drop-hint').textContent = (CFG.accept || []).join(' ') + ' · 첨부 합계 ' + (CFG.maxTotalMB || 15) + 'MB 이하' +
+      (CFG.maxFiles ? ' · 최대 ' + CFG.maxFiles + '개' : '');
     $('ca-file').setAttribute('accept', (CFG.accept || []).join(','));
     $('ca-foot').innerHTML = (CFG.footnotes || []).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('');
     if (!configured) $('ca-setup').hidden = false;
@@ -134,18 +141,22 @@
   var files = [];
   function addFiles(list) {
     var allowed = (CFG.accept || []).map(function (x) { return x.toLowerCase(); });
+    var overWarned = false;
     Array.prototype.forEach.call(list, function (f) {
       var ext = extOf(f.name);
       if (allowed.indexOf(ext) < 0) {                       // ① 확장자 필터
         toast('「' + f.name + '」은(는) 올릴 수 없는 형식입니다. (' + allowed.join(' ') + ' 만 가능)'); return;
       }
-      if (f.size > CFG.maxFileMB * MB) {                     // ② 파일 1개당 용량 제한
-        toast('「' + f.name + '」은(는) ' + fmtSize(f.size) + '로, 파일당 ' + CFG.maxFileMB + 'MB를 넘습니다.'); return;
-      }
       if (f.size === 0) { toast('「' + f.name + '」은(는) 빈 파일입니다.'); return; }
       if (files.some(function (x) { return x.name === f.name && x.size === f.size; })) return;
-      if (files.length >= CFG.maxFiles) {                    // ③ 개수 제한
-        toast('파일은 최대 ' + CFG.maxFiles + '개까지 첨부할 수 있습니다. 여러 서류는 PDF 1개로 합쳐 주세요.'); return;
+      if (CFG.maxFiles && files.length >= CFG.maxFiles) {    // 개수 제한(설정한 경우만)
+        toast('파일은 최대 ' + CFG.maxFiles + '개까지 첨부할 수 있습니다.'); return;
+      }
+      var after = totalSize(files) + f.size;
+      if (after > MAX_TOTAL) {                               // ② 첨부 합계 15MB 초과 → 경고 알림
+        if (!overWarned) alert('「' + f.name + '」을(를) 더하면 ' + overLimitMessage(after));
+        overWarned = true;
+        return;
       }
       files.push(f);
     });
@@ -157,6 +168,11 @@
         '<span class="fi-name">' + esc(f.name) + '</span><span class="fi-size">' + fmtSize(f.size) + '</span>' +
         '<button type="button" class="fi-del" data-i="' + i + '" aria-label="' + esc(f.name) + ' 삭제">×</button></li>';
     }).join('');
+    var total = totalSize(files), meter = $('ca-meter');
+    meter.hidden = !files.length;
+    meter.classList.toggle('is-full', total > MAX_TOTAL * 0.9);
+    $('ca-meter-bar').style.width = Math.min(100, total / MAX_TOTAL * 100) + '%';
+    $('ca-meter-txt').textContent = '합계 ' + fmtSize(total) + ' / ' + (CFG.maxTotalMB || 15) + 'MB (' + files.length + '개)';
     if (files.length) $('ca-file-msg').hidden = true;
   }
   function bindDrop() {
@@ -173,83 +189,64 @@
     });
   }
 
-  /* ---------- ② Firebase Storage 업로드 (파일 1개) ---------- */
-  //   저장 위치 : applications/2026-11-08/KAR-20261108-143015-AB12_<무작위16자>/KAR-20261108-143015-AB12_1.pdf
-  function objectUrl(path) { return FIREBASE_API + encodeURIComponent(bucket) + '/o/' + encodeURIComponent(path); }
-
-  function uploadFile(file, path, onProgress) {
+  /* ---------- ② Base64 변환 ---------- */
+  function toBase64(file) {
     return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', FIREBASE_API + encodeURIComponent(bucket) + '/o?uploadType=media&name=' + encodeURIComponent(path));
-      xhr.setRequestHeader('Content-Type', MIME[extOf(file.name)] || 'application/octet-stream');
-      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
-      xhr.onload = function () {
-        var j = {}; try { j = JSON.parse(xhr.responseText || '{}'); } catch (e) { /* 무시 */ }
-        if (xhr.status >= 200 && xhr.status < 300) resolve(j);
-        else reject(new Error(xhr.status === 403 ? 'FIREBASE_RULES' : 'FIREBASE_' + xhr.status));
-      };
-      xhr.onerror = function () { reject(new Error('FIREBASE_NETWORK')); };
-      xhr.send(file);
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(',')[1] || ''); };   // "data:...;base64," 앞부분 제거
+      r.onerror = function () { reject(new Error('READ_FAILED')); };
+      r.readAsDataURL(file);
     });
   }
 
-  /* ---------- ③ 다운로드 URL 확보 ---------- */
-  //   업로드 응답(meta)의 downloadTokens 로 URL 을 만들고,
-  //   응답에 토큰이 없으면 파일 정보를 다시 조회(GET)해 토큰을 받아옵니다(보안 규칙 allow get 필요).
-  async function getDownloadUrl(meta, path) {
-    var token = meta && meta.downloadTokens ? String(meta.downloadTokens).split(',')[0] : '';
-    var readable = false;                                   // 보안 규칙 allow get 으로 토큰 없이도 열 수 있는지
-    if (!token) {
-      for (var t = 0; t < 3 && !token; t++) {              // 최대 3번 재시도
-        if (t) await new Promise(function (r) { setTimeout(r, 700); });
-        try {
-          var res = await fetch(objectUrl(path), { credentials: 'omit' });
-          if (res.ok) {
-            readable = true;
-            var j = await res.json();
-            token = j.downloadTokens ? String(j.downloadTokens).split(',')[0] : '';
-          } else log('파일 정보 조회 실패(HTTP ' + res.status + ') — 보안 규칙의 allow get 을 확인하세요', path);
-        } catch (e) { log('파일 정보 조회 오류', String(e)); }
-      }
+  /* ---------- ③ Apps Script 웹 앱으로 전송 → 드라이브 저장 ---------- */
+  //   Content-Type 을 text/plain 으로 보내야 브라우저 사전 요청(CORS preflight) 없이 바로 전달됩니다.
+  function postToAppsScript(payload, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', scriptUrl);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+      xhr.timeout = 180000;                                   // 3분
+      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      xhr.onload = function () {
+        var j = null; try { j = JSON.parse(xhr.responseText); } catch (e) { /* JSON 이 아님 */ }
+        if (!j) { log('Apps Script 응답이 JSON 이 아님(HTTP ' + xhr.status + ')', String(xhr.responseText || '').slice(0, 300)); return reject(new Error('SCRIPT_BAD_RESPONSE')); }
+        resolve(j);
+      };
+      xhr.onerror = function () { reject(new Error('SCRIPT_NETWORK')); };
+      xhr.ontimeout = function () { reject(new Error('SCRIPT_TIMEOUT')); };
+      xhr.send(JSON.stringify(payload));
+    });
+  }
+  async function uploadToDrive(info) {
+    var list = [];
+    for (var i = 0; i < files.length; i++) {                 // 파일을 하나씩 Base64 로 변환
+      progress('파일 준비 중 (' + (i + 1) + '/' + files.length + ') · ' + files[i].name, 0.05 + i / files.length * 0.1);
+      list.push({ name: files[i].name, mimeType: MIME[extOf(files[i].name)] || 'application/octet-stream', data: await toBase64(files[i]) });
     }
-    if (token) return objectUrl(path) + '?alt=media&token=' + encodeURIComponent(token);
-    if (readable) { log('토큰이 없어 allow get 규칙으로 여는 링크를 사용합니다', path); return objectUrl(path) + '?alt=media'; }
-    throw new Error('LINK_MISSING');
+    var payload = { applyNo: info.applyNo, name: info.name, type: info.type, honey: $('ca-honey').value, files: list };
+    log('Apps Script 로 전송 (파일 ' + list.length + '개, 합계 ' + fmtSize(totalSize(files)) + ')', scriptUrl);
+    var res = await postToAppsScript(payload, function (r) {
+      progress('구글 드라이브에 업로드 중… ' + Math.round(r * 100) + '%', 0.15 + r * 0.7);
+    });
+    log('Apps Script 응답', res);
+    if (!res.ok) throw new Error('SCRIPT_' + (res.error || 'FAILED'));
+    var links = (res.files || []).filter(function (f) { return f && f.url; });
+    if (!res.folderUrl || links.length !== files.length) throw new Error('LINK_MISSING');
+    return { folderUrl: res.folderUrl, folderName: res.folderName, files: links };
   }
 
-  /* ---------- ②+③ 모든 파일 업로드 → 링크 목록 ---------- */
-  async function uploadAll(folder, applyNo) {
-    var total = files.reduce(function (s, f) { return s + f.size; }, 0), done = 0, links = [];
-    for (var i = 0; i < files.length; i++) {                // 순서대로 하나씩 await
-      // 저장 파일 이름은 영문·숫자만 사용 → 메일 속 링크가 짧고 깨지지 않음 (원래 파일 이름은 '첨부파일N_이름' 에 표시)
-      //   예) .../KAR-20261108-143015-AB12_2.pdf
-      var f = files[i], path = folder + '/' + applyNo + '_' + (i + 1) + extOf(f.name);
-      log('업로드 시작 (' + (i + 1) + '/' + files.length + ')', path);
-      var meta = await uploadFile(f, path, function (r) {
-        progress('파일 업로드 중 (' + (i + 1) + '/' + files.length + ') · ' + f.name, (done + f.size * r) / total * 0.85);
-      });
-      log('업로드 완료 · 응답', { name: meta.name, size: meta.size, downloadTokens: meta.downloadTokens ? '있음' : '없음' });
-      progress('다운로드 링크 만드는 중 (' + (i + 1) + '/' + files.length + ')', (done + f.size) / total * 0.9);
-      var url = await getDownloadUrl(meta, path);
-      log('다운로드 URL', url);
-      done += f.size;
-      links.push({ name: f.name, size: f.size, url: url });
-    }
-    return links;
-  }
-
-  /* ---------- ④ 다운로드 URL 을 숨김 input 에 대입 ---------- */
-  function fillHiddenInputs(form, info, links) {
+  /* ---------- ④ 드라이브 링크를 숨김 input 에 대입 ---------- */
+  function fillHiddenInputs(info, drive) {
     $('ca-h-subject').value = (CFG.subjectPrefix || '') + ' ' + info.type + ' · ' + info.grade + ' · ' + info.name + ' (' + info.applyNo + ')';
     $('ca-h-replyto').value = info.email;                   // 메일 '답장' → 신청인
     $('ca-h-no').value = info.applyNo;
     $('ca-h-schemes').value = info.schemes.join(', ');
-    // ★ 전체 링크 : <input type="hidden" name="첨부파일_링크">  (줄바꿈 없이 ' , ' 로 구분)
-    $('ca-h-links').value = links.map(function (l) { return l.url; }).join(' , ');
-    // ★ 파일별 숨김 input : 첨부파일1_이름 / 첨부파일1_링크 …
+    $('ca-h-folder').value = drive.folderUrl;               // ★ 신청 폴더 링크
+    $('ca-h-links').value = drive.files.map(function (f) { return f.url; }).join(' , ');   // ★ 파일 링크 전체
     var box = $('ca-h-files'); box.innerHTML = '';
-    links.forEach(function (l, i) {
-      [['첨부파일' + (i + 1) + '_이름', l.name + ' (' + fmtSize(l.size) + ')'], ['첨부파일' + (i + 1) + '_링크', l.url]].forEach(function (kv) {
+    drive.files.forEach(function (f, i) {                   // ★ 파일별 이름 / 링크
+      [['첨부파일' + (i + 1) + '_이름', files[i].name + ' (' + fmtSize(files[i].size) + ')'], ['첨부파일' + (i + 1) + '_링크', f.url]].forEach(function (kv) {
         var h = document.createElement('input');
         h.type = 'hidden'; h.name = kv[0]; h.value = kv[1];
         box.appendChild(h);
@@ -257,7 +254,7 @@
     });
     var keep = document.createElement('input');
     keep.type = 'hidden'; keep.name = '파일 보관 안내';
-    keep.value = '첨부 링크는 업로드 후 ' + (CFG.keepDays || 30) + '일이 지나면 자동 삭제되어 열리지 않습니다. 기간 안에 내려받아 보관해 주세요.';
+    keep.value = '링크는 담당자 구글 계정으로 로그인해야 열립니다. 업로드 후 ' + (CFG.keepDays || 30) + '일이 지나면 자동 삭제되니 기간 안에 내려받아 보관해 주세요.';
     box.appendChild(keep);
   }
 
@@ -305,9 +302,12 @@
     var m = String(err && err.message || err);
     var tail = ' 계속 안 되면 신청서와 증빙서류를 <b>' + esc(CFG.fallbackEmail) + '</b> 로 보내 주세요.';
     if (m === 'NOT_CONFIGURED') return '자격인증 신청 기능이 아직 설정되지 않았습니다.' + tail;
-    if (m === 'FIREBASE_RULES') return '파일 업로드가 거부되었습니다. 파일 형식·용량을 확인해 주세요.' + tail;
-    if (m === 'LINK_MISSING') return '업로드한 파일의 다운로드 링크를 만들지 못해 신청서를 보내지 않았습니다. 잠시 후 다시 시도해 주세요.' + tail;
-    if (m.indexOf('FIREBASE') === 0) return '파일 업로드 중 문제가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.' + tail;
+    if (m === 'SCRIPT_TOO_LARGE') return '첨부파일 합계가 ' + (CFG.maxTotalMB || 15) + 'MB를 넘습니다. 용량을 줄여 다시 제출해 주세요.' + tail;
+    if (m === 'SCRIPT_BAD_TYPE') return '올릴 수 없는 형식의 파일이 있습니다. (' + esc((CFG.accept || []).join(' ')) + ' 만 가능)' + tail;
+    if (m === 'SCRIPT_TOO_MANY_REQUESTS') return '지금 신청이 많아 잠시 접수가 제한되었습니다. 10분 뒤 다시 시도해 주세요.' + tail;
+    if (m === 'SCRIPT_TIMEOUT') return '업로드 시간이 너무 오래 걸려 중단되었습니다. 인터넷 연결을 확인하거나 용량을 줄여 다시 시도해 주세요.' + tail;
+    if (m === 'LINK_MISSING') return '업로드한 파일의 링크를 받지 못해 신청서를 보내지 않았습니다. 잠시 후 다시 시도해 주세요.' + tail;
+    if (m.indexOf('SCRIPT_') === 0 || m === 'READ_FAILED') return '증빙서류 업로드 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.' + tail;
     if (m === 'NOT_ACTIVATED') return '접수 메일 주소의 사용 승인(활성화)이 아직 완료되지 않았습니다. 담당자에게 알려 주세요.' + tail;
     return '신청서를 제출하지 못했습니다. 잠시 후 다시 시도해 주세요.' + tail;
   }
@@ -317,10 +317,12 @@
     var schemeOk = !!form.querySelector('input[data-scheme]:checked');
     $('ca-scheme-msg').hidden = schemeOk;
     $('ca-file-msg').hidden = files.length > 0;
-    if (!ok) { var bad = form.querySelector(':invalid'); if (bad) { bad.focus(); if (bad.reportValidity) bad.reportValidity(); } }
-    else if (!schemeOk) $('ca-schemes').scrollIntoView({ block: 'center', behavior: 'smooth' });
-    else if (!files.length) $('ca-drop').focus();
-    return ok && schemeOk && files.length > 0;
+    if (!ok) { var bad = form.querySelector(':invalid'); if (bad) { bad.focus(); if (bad.reportValidity) bad.reportValidity(); } return false; }
+    if (!schemeOk) { $('ca-schemes').scrollIntoView({ block: 'center', behavior: 'smooth' }); return false; }
+    if (!files.length) { $('ca-drop').focus(); return false; }
+    var total = totalSize(files);
+    if (total > MAX_TOTAL) { alert(overLimitMessage(total)); return false; }   // 제출 직전 15MB 재확인
+    return true;
   }
 
   /* ---------- 제출 (①~⑥) ---------- */
@@ -342,8 +344,6 @@
       schemes: Array.prototype.map.call(form.querySelectorAll('input[data-scheme]:checked'), function (x) { return x.value; }),
       applyNo: 'KAR-' + ymd + '-' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + '-' + randHex(4).toUpperCase(),
     };
-    var folder = (CFG.storageFolder || 'applications') + '/' + ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6) +
-      '/' + info.applyNo + '_' + randHex(16);
 
     busy = true; setLoading(true);
     var navigating = false;
@@ -351,11 +351,9 @@
       if (!configured || !route || !route.to) throw new Error('NOT_CONFIGURED');
       log('접수번호 ' + info.applyNo + ' · 받는 메일 ' + route.to);
 
-      var links = await uploadAll(folder, info.applyNo);                    // ②③ 업로드 + URL (모두 끝날 때까지 대기)
-      if (links.length !== files.length || links.some(function (l) { return !l.url; })) throw new Error('LINK_MISSING');
-
-      fillHiddenInputs(form, info, links);                    // ④ 숨김 input 에 링크 대입
-      progress('신청서 전송 중…', 0.95);
+      var drive = await uploadToDrive(info);                  // ②③ Base64 → Apps Script → 드라이브 (끝날 때까지 대기)
+      fillHiddenInputs(info, drive);                          // ④ 숨김 input 에 드라이브 링크 대입
+      progress('신청서 전송 중…', 0.92);
 
       if (CFG.sendMode === 'post') { navigating = true; sendPost(form, route.to, info.applyNo); return; }
       await sendAjax(form, route.to);                         // ⑤ 메일 전송 완료까지 대기
@@ -388,7 +386,7 @@
     var form = $('ca-form');
     form.reset(); form.classList.remove('was-checked');
     files = []; renderFiles(); renderDocs(); showError('');
-    $('ca-h-files').innerHTML = ''; $('ca-h-links').value = '';
+    $('ca-h-files').innerHTML = ''; $('ca-h-links').value = ''; $('ca-h-folder').value = '';
     $('ca-file').disabled = false;
     $('ca-scheme-msg').hidden = true; $('ca-file-msg').hidden = true;
   }
@@ -402,7 +400,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!$('ca-form')) return;
     try {
-      build(); bindDrop();
+      build(); bindDrop(); renderFiles();
       $('ca-form').addEventListener('submit', handleSubmit);
       $('ca-form').addEventListener('reset', function () { setTimeout(resetAll, 0); });
       $('ca-form').addEventListener('change', function (e) {

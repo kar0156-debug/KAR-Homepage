@@ -216,23 +216,31 @@
   }
 
   /* ---------- ③ Apps Script 웹 앱으로 전송 → 드라이브 저장 ---------- */
-  //   Content-Type 을 text/plain 으로 보내야 브라우저 사전 요청(CORS preflight) 없이 바로 전달됩니다.
-  function postToAppsScript(payload, onProgress) {
-    return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', scriptUrl);
-      xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-      xhr.timeout = 180000;                                   // 3분
-      xhr.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
-      xhr.onload = function () {
-        var j = null; try { j = JSON.parse(xhr.responseText); } catch (e) { /* JSON 이 아님 */ }
-        if (!j) { log('Apps Script 응답이 JSON 이 아님(HTTP ' + xhr.status + ')', String(xhr.responseText || '').slice(0, 300)); return reject(new Error('SCRIPT_BAD_RESPONSE')); }
-        resolve(j);
-      };
-      xhr.onerror = function () { reject(new Error('SCRIPT_NETWORK')); };
-      xhr.ontimeout = function () { reject(new Error('SCRIPT_TIMEOUT')); };
-      xhr.send(JSON.stringify(payload));
-    });
+  //   ※ 반드시 '단순 요청'으로 보내야 합니다. Apps Script 는 브라우저의 사전 요청(OPTIONS, CORS preflight)에
+  //     응답하지 않기 때문입니다.
+  //     - Content-Type 은 text/plain (application/json 이면 사전 요청이 생김)
+  //     - 업로드 진행률 감시(XMLHttpRequest.upload.onprogress)도 사전 요청을 만들므로 쓰지 않고 fetch 사용
+  async function postToAppsScript(payload) {
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 180000) : null;   // 3분
+    var res, text;
+    try {
+      res = await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow',
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+      text = await res.text();
+    } catch (e) {
+      throw new Error(e && e.name === 'AbortError' ? 'SCRIPT_TIMEOUT' : 'SCRIPT_NETWORK');
+    } finally { if (timer) clearTimeout(timer); }
+    try { return JSON.parse(text); }
+    catch (e) {
+      log('Apps Script 응답이 JSON 이 아님(HTTP ' + res.status + ')', String(text || '').slice(0, 300));
+      throw new Error('SCRIPT_BAD_RESPONSE');
+    }
   }
   async function uploadToDrive(info) {
     var list = [];
@@ -242,9 +250,8 @@
     }
     var payload = { applyNo: info.applyNo, name: info.name, type: info.type, honey: $('ca-honey').value, files: list };
     log('Apps Script 로 전송 (파일 ' + list.length + '개, 합계 ' + fmtSize(totalSize(files)) + ')', scriptUrl);
-    var res = await postToAppsScript(payload, function (r) {
-      progress('구글 드라이브에 업로드 중… ' + Math.round(r * 100) + '%', 0.15 + r * 0.7);
-    });
+    progress('구글 드라이브에 업로드 중… (파일 크기에 따라 10초~1분 걸릴 수 있습니다)', 0.5);
+    var res = await postToAppsScript(payload);
     log('Apps Script 응답', res);
     if (!res.ok) throw new Error('SCRIPT_' + (res.error || 'FAILED'));
     var links = (res.files || []).filter(function (f) { return f && f.url; });

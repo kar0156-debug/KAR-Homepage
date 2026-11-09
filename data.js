@@ -292,7 +292,7 @@ KAR.onlineForms = [
 KAR.certApply = {
   // ★1. Apps Script 웹 앱 URL (Apps Script → 배포 → 새 배포 → 웹 앱 → 배포 후 나오는 'URL')
   //      https://script.google.com/macros/s/【배포 ID】/exec  형태입니다.
-  appsScriptUrl: "https://script.google.com/macros/s/여기에_배포ID_붙여넣기/exec",
+  appsScriptUrl: "https://script.google.com/macros/s/AKfycbxD2tu5wY4KnlgUeuBkPcu-uteF1T-u3tmCVzzjzZEhTdi-4P-tiyo2V9N5LR7lsClT/exec",
 
   // ★2. 신청 유형별 접수 메일 = FormSubmit Action 이메일 주소
   //      (활성화 후 받은 임의 문자열로 바꿔도 됨 · 같은 주소를 쓰는 유형은 같은 값)

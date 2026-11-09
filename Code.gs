@@ -18,7 +18,7 @@
 var CONFIG = {
   // ★ 증빙서류를 저장할 구글 드라이브 폴더 ID
   //   드라이브에서 폴더를 열었을 때 주소창의  https://drive.google.com/drive/folders/【이 부분】
-  FOLDER_ID: '여기에_폴더_ID_붙여넣기',
+  FOLDER_ID: '1p0LkO6wWG62CT4jihIPPk3ULeawBpXdS',   // 사용자가 알려 준 증빙서류 저장 폴더
 
   MAX_TOTAL_MB: 15,                                   // 신청 1건 첨부 합계 한도(MB) — 홈페이지 data.js 의 maxTotalMB 와 같게
   ALLOWED_EXT: ['pdf', 'hwp', 'docx', 'xlsx', 'jpg'], // 허용 확장자 — data.js 의 accept 와 같게

@@ -379,9 +379,10 @@
 
           <!-- ▼ FormSubmit 전송 폼
                ★ 받는 메일(Action) 주소 : 신청 유형별로 data.js → KAR.certApply.routes 에서 바꿉니다.
-                 (아래 action 은 기본값이며, 제출 직전에 신청 유형에 맞는 주소로 자동 교체됩니다)
+                 (action 은 비워 둡니다. 첨부파일 업로드가 끝난 뒤 자바스크립트가 신청 유형에 맞는 주소로 보냅니다.
+                  → 설정 오류로 자바스크립트가 멈춰도 첨부 링크 없는 메일이 나가지 않습니다)
                ★ Apps Script 웹 앱 URL : data.js → KAR.certApply.appsScriptUrl -->
-          <form class="ca-form" id="ca-form" method="POST" action="https://formsubmit.co/kar0159@kar.re.kr" novalidate>
+          <form class="ca-form" id="ca-form" method="POST" novalidate>
             <!-- FormSubmit 설정용 숨김 항목 (값은 자바스크립트가 채움) -->
             <input type="hidden" name="_subject"  id="ca-h-subject">
             <input type="hidden" name="_template" value="table">

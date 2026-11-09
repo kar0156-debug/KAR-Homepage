@@ -30,7 +30,7 @@ KAR.settings = {
   // 서식 파일 주소 앞부분.
   //   비워 두면("") 이 사이트(저장소)의 files 폴더에서 바로 내려받습니다. (권장)
   //   서식을 다른 저장소로 옮길 경우 그 저장소의 raw 주소를 적습니다.
-  //   예) "https://raw.githubusercontent.com/kar0156-debug/KAR-Forms/main/"
+  //   예) "https://githubusercontent.com"
   fileBase: "",
 };
 
@@ -71,23 +71,6 @@ KAR.accounts = [
  *  3. 온라인 신청 (FormSubmit — 입력값과 첨부파일을 담당자 메일로 전송)
  * --------------------------------------------------------------------------
  *  ★ 처음 한 번 해야 할 일 : docs/2_FormSubmit_온라인신청_설정_가이드.md 참고
- *
- *  [항목별 설명]
- *  - endpoint : 메일을 받을 주소.  "https://formsubmit.co/ajax/받는메일주소"
- *               첫 신청 후 FormSubmit 이 보내 주는 '임의 문자열(alias)'로 바꾸면
- *               홈페이지 소스에 메일 주소가 드러나지 않습니다. (권장)
- *               예) "https://formsubmit.co/ajax/7f3a9c1e5b2d4a6f8e0c1b3d5a7f9e2c"
- *  - cc       : 함께 받을 주소(참조). 여러 개면 쉼표로 구분. 없으면 ""
- *  - subject  : 받는 메일의 제목
- *  - attach   : true 이면 드래그 앤 드롭 파일 첨부 영역 표시 (합계 10MB 이하)
- *  - fields   : 입력 항목. 기존 구글 폼(이전 신청서)과 같은 순서·항목입니다.
- *      type  : "text"(한 줄) · "textarea"(여러 줄) · "date"(날짜) · "email"
- *              "select"(목록) · "radio"(하나 선택) · "agree"(동의 체크)
- *              "section"(소제목·안내문, 입력칸 아님)
- *      label : 화면과 메일에 표시되는 항목명 (같은 폼 안에서 겹치지 않게)
- *      required : true 이면 필수 입력 (현재는 구글 폼과 같게 모두 선택 입력)
- *      showIf : { field: "항목명", value: "값" } → 그 항목이 해당 값일 때만 표시
- *  - privacy  : 폼 아래 ※ 안내 문구 (신청별)
  * ========================================================================== */
 KAR.formSubmit = {
   maxTotalMB: 10,      // FormSubmit 첨부 한도 : 한 번 신청에 합계 10MB
@@ -109,7 +92,7 @@ KAR.onlineForms = [
     id: "edu",
     title: "교육 신청",
     desc: "KAR 교육과정(자격갱신·세미나·심사경력인정 등) 참가 신청입니다. 신청 후 참가비를 입금해 주세요.",
-    endpoint: "https://formsubmit.co/ajax/kar0156@kar.re.kr",
+    endpoint: "https://formsubmit.co",
     cc: "",
     fallbackEmail: "edu@kar.re.kr",   // 제출이 안 될 때 안내할 메일 주소
     subject: "[홈페이지 온라인 신청] 교육 신청",
@@ -140,7 +123,7 @@ KAR.onlineForms = [
     id: "exam",
     title: "자격시험 신청",
     desc: "ISO 인증심사원 분야별 필기시험 및 국제통용발자국 검증심사원 자격인증시험 응시 신청입니다.",
-    endpoint: "https://formsubmit.co/ajax/kar0159@kar.re.kr",
+    endpoint: "https://formsubmit.co",
     cc: "",
     fallbackEmail: "kar0159@kar.re.kr",   // 제출이 안 될 때 안내할 메일 주소
     subject: "[홈페이지 온라인 신청] 자격시험 신청",
@@ -195,7 +178,7 @@ KAR.onlineForms = [
     title: "자격인증서 발급 신청",
     desc: "자격인증 공고 후 자격인증서(PDF) 발급 신청입니다.",
     alert: "※ 자격인증 공고 14일 이후, 발급 가능 ※",
-    endpoint: "https://formsubmit.co/ajax/kar0159@kar.re.kr",
+    endpoint: "https://formsubmit.co",
     cc: "kar0154@kar.re.kr",
     fallbackEmail: "kar0159@kar.re.kr",   // 제출이 안 될 때 안내할 메일 주소
     subject: "[홈페이지 온라인 신청] 자격인증서 발급 신청",
@@ -221,7 +204,7 @@ KAR.onlineForms = [
     id: "receipt",
     title: "영수증 신청·출력",
     desc: "자격인증 수수료 · 교육비 · 응시료 증빙서류(거래명세서 · 현금영수증 · 세금계산서) 발급 신청입니다.",
-    endpoint: "https://formsubmit.co/ajax/kar0157@kar.re.kr",
+    endpoint: "https://formsubmit.co",
     cc: "",
     fallbackEmail: "kar0157@kar.re.kr",   // 제출이 안 될 때 안내할 메일 주소
     subject: "[홈페이지 온라인 신청] 영수증 신청·출력",
@@ -238,357 +221,3 @@ KAR.onlineForms = [
 
       // ── 회사 명의 ──
       { type: "section", title: "회사 명의 발급 정보", desc: "증빙서류에 기재될 회사 정보와 수신 이메일을 정확히 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "회사명", type: "text", desc: "사업자등록증에 기재된 회사명을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "사업자등록번호", type: "text", desc: "사업자등록번호 10자리를 입력해 주세요.", placeholder: "000-00-00000", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "대표자명", type: "text", desc: "사업자등록증에 기재된 대표자 성함을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "사업장 소재지", type: "textarea", desc: "사업자등록증에 기재된 사업장 소재지를 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "업태 및 종목", type: "text", desc: "사업자등록증에 기재된 업태 및 종목을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "심사원 성명", type: "text", desc: "해당 비용의 대상이 되는 심사원 성함을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "수신 이메일(회사)", type: "email", replyTo: true, desc: "발급된 증빙서류를 받으실 이메일 주소를 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "회사명의" } },
-      { label: "청구·영수 선택", type: "radio", desc: "입금 여부에 따라 발급 유형을 선택해 주세요.", options: ["청구용 : 입금 전 발급을 요청하는 경우", "영수용: 입금 완료 후 발급을 요청하는 경우"], showIf: { field: "발급 명의 선택", value: "회사명의" } },
-
-      // ── 회사 명의 > 청구용 ──
-      { type: "section", title: "청구용 발급 신청", desc: "입금 전 청구용 증빙서류를 신청하는 페이지입니다.\n원활한 발급을 위해 관련 신청서류를 먼저 제출해 주세요.", showIf: { field: "청구·영수 선택", value: "청구용 : 입금 전 발급을 요청하는 경우" } },
-      { label: "신청내용(청구용)", type: "radio", options: ["연자격유지비", "자격인증신청비", "자격전환/인증서/카드신청", "심사코드추가", "합격증 갱신", "필기시험 응시료", "교육비"], showIf: { field: "청구·영수 선택", value: "청구용 : 입금 전 발급을 요청하는 경우" } },
-      { label: "세부 요청 내용(청구용)", type: "textarea", desc: "선택하신 항목에 해당하는 표준명, 자격 등급 또는 교육명을 구체적으로 입력해 주세요.\n예: QMS 심사원 승급 신청 / [모듈1] 자격갱신과정", showIf: { field: "청구·영수 선택", value: "청구용 : 입금 전 발급을 요청하는 경우" } },
-      { label: "청구 금액", type: "text", desc: "증빙서류에 기재할 청구 금액을 원 단위로 입력해 주세요.", showIf: { field: "청구·영수 선택", value: "청구용 : 입금 전 발급을 요청하는 경우" } },
-
-      // ── 회사 명의 > 영수용 ──
-      { type: "section", title: "영수용 발급 신청", desc: "입금 완료 후 영수용 증빙서류를 신청하는 페이지입니다.\n입금 내역을 확인할 수 있도록 실제 입금하신 정보를 정확히 입력해 주세요.", showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-      { label: "입금일(영수용)", type: "text", desc: "입금하신 날짜를 입력해 주세요.", placeholder: "예: 2026. 11. 03.", showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-      { label: "입금자(영수용)", type: "text", desc: "입금 시 통장에 표시된 입금자명을 입력해 주세요.", showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-      { label: "신청내용(영수용)", type: "radio", options: ["연자격유지비", "자격인증신청비", "자격전환/인증서/카드신청", "심사코드추가", "합격증 갱신", "필기시험 응시료", "교육비"], showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-      { label: "금액(영수용)", type: "text", desc: "입금하신 금액을 입력해 주세요.", showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-      { label: "세부 요청 내용(영수용)", type: "textarea", desc: "선택하신 항목에 해당하는 표준명, 자격 등급 또는 교육명을 구체적으로 입력해 주세요.\n예: QMS 심사원 승급 신청 / [모듈1] 자격갱신과정", showIf: { field: "청구·영수 선택", value: "영수용: 입금 완료 후 발급을 요청하는 경우" } },
-
-      // ── 개인 명의 ──
-      { type: "section", title: "개인 명의 발급 정보", desc: "개인 명의의 증빙서류 발급을 위해 아래 정보를 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "성명", type: "text", desc: "증빙서류에 기재할 성함을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "생년월일", type: "text", desc: "생년월일을 ‘연도.월.일’ 형식으로 입력해 주세요.", placeholder: "예: 1990.01.01", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "수신 이메일(개인)", type: "email", replyTo: true, desc: "발급된 증빙서류를 받으실 이메일 주소를 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "입금일(개인)", type: "text", desc: "입금하신 날짜를 입력해 주세요.", placeholder: "예: 2026. 01. 01.", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "입금자명(개인)", type: "text", desc: "입금 시 통장에 표시된 입금자명을 입력해 주세요.", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "신청내용(개인)", type: "radio", options: ["연자격유지비", "자격인증신청비", "자격전환/인증서/카드신청", "심사코드추가", "합격증 갱신", "필기시험 응시료", "교육비"], showIf: { field: "발급 명의 선택", value: "개인명의" } },
-      { label: "세부 요청 내용(개인)", type: "textarea", desc: "선택하신 항목에 해당하는 표준명, 자격 등급 또는 교육명을 구체적으로 입력해 주세요.\n예: QMS 심사원 승급 신청 / [모듈1] 자격갱신과정", showIf: { field: "발급 명의 선택", value: "개인명의" } },
-
-      // ── 공통 마무리 ──
-      { type: "section", title: "추가 요청사항", desc: "추가 요청사항이 있으시면 아래에 남겨 주세요.\n급하게 발급이 필요하신 경우에는 전화로 문의해 주세요. (운영팀 : 02-2026-0157)" },
-      { label: "추가 요청사항", type: "textarea" },
-    ],
-  },
-];
-
-
-/* ==========================================================================
- *  3-1. 자격인증 신청 (Google Apps Script + 구글 드라이브 + FormSubmit)  ★ 메인 기능
- * --------------------------------------------------------------------------
- *  처리 순서 : ① 증빙서류(Base64) → Apps Script 웹 앱 → 구글 드라이브 폴더에 저장(신청자 로그인 없음)
- *              ② 돌려받은 드라이브 폴더·파일 링크 + 신청 내용 → FormSubmit → 담당자 메일
- *  설정 방법 : docs/4_AppsScript_구글드라이브_자격인증신청_연동_가이드.md
- *  Apps Script 코드 : docs/apps-script/Code.gs
- *
- *  ▶ 바꿀 곳은 아래 ★ 표시 3곳뿐입니다.
- * ========================================================================== */
-KAR.certApply = {
-  // ★1. Apps Script 웹 앱 URL (Apps Script → 배포 → 새 배포 → 웹 앱 → 배포 후 나오는 'URL')
-  //      https://script.google.com/macros/s/【배포 ID】/exec  형태입니다.
-  appsScriptUrl: "https://script.google.com/macros/s/여기에_배포ID_붙여넣기/exec",
-
-  // ★2. 신청 유형별 접수 메일 = FormSubmit Action 이메일 주소
-  //      (활성화 후 받은 임의 문자열로 바꿔도 됨 · 같은 주소를 쓰는 유형은 같은 값)
-  routes: {
-    "신규 등록":       { to: "kar0159@kar.re.kr" },
-    "승급":            { to: "kar0159@kar.re.kr" },
-    "심사수행범위 추가": { to: "kar0159@kar.re.kr" },
-    "갱신":            { to: "kar0156@kar.re.kr" },
-    "전환":            { to: "kar0156@kar.re.kr" },
-  },
-  // ★3. 제출에 실패했을 때 화면에 안내할 메일 · 받는 메일 제목 머리말
-  fallbackEmail: "kar0159@kar.re.kr (등록·승급) / kar0156@kar.re.kr (갱신·전환)",
-  subjectPrefix: "[홈페이지 자격인증 신청]",
-
-  // 메일 전송 방식
-  //   "ajax" : 페이지 이동 없이 전송 → "접수가 완료되었습니다." 팝업 (기본)
-  //   "post" : 일반 폼 제출(페이지가 잠시 FormSubmit 으로 갔다가 돌아옴) — ajax 로 메일이 안 올 때 예비용
-  sendMode: "ajax",
-  // 시험용 : true 로 바꾸면 폼 아래에 처리 과정(드라이브 저장 결과 · 링크 · 전송 값)이 표시됩니다.
-  //          시험이 끝나면 꼭 false 로 돌려 두세요.
-  debug: false,
-
-  // 첨부 제한 — Apps Script(Code.gs) 의 MAX_TOTAL_MB · ALLOWED_EXT 와 같은 값으로 맞춥니다.
-  maxTotalMB: 15,                   // 신청 1건 첨부 합계 한도(MB) — 넘으면 제출 전에 경고
-  maxFiles: 0,                      // 최대 파일 수 (0 = 제한 없음, 최소 1개는 필수)
-  accept: [".pdf", ".hwp", ".docx", ".xlsx", ".jpg"],
-  keepDays: 30,                     // 보관 기간(일) — 메일 안내 문구용(실제 삭제는 Code.gs 의 자동 정리)
-
-  // 선택 항목
-  types:  ["신규 등록", "승급", "갱신", "전환", "심사수행범위 추가"],
-  grades: ["심사원보", "심사원", "선임심사원", "검증심사원"],
-  schemes: [
-    "ISO 9001 (QMS)", "ISO 14001 (EMS)", "ISO 45001 (OHSMS)", "ISO 22000 (FSMS)", "ISO 50001 (EnMS)",
-    "ISO/IEC 27001 (ISMS)", "KS I 7001 & 7002 (GMS)", "ISO 20121 (ESMS)", "ISO 22301 (BCMS)", "ISO 37001 (ABMS)",
-    "ISO 39001 (RTSMS)", "ISO 41001 (FmMS)", "ISO 37301 (CMS)", "ISO/IEC 27701 (PIMS)", "ISO 21001 (EOMS)",
-    "ISO/IEC 42001 (AIMS)", "ISO/UNDP DIS 53001 (SDGMS)",
-  ],
-
-  // 폼 아래 ※ 안내
-  footnotes: [
-    "※ 입력하신 정보와 증빙서류는 자격인증 심사 목적으로만 이용됩니다.",
-    "※ 신청 시, 개인정보 이용에 동의한 것으로 간주하며, 첨부파일은 한국심사자격인증원 구글 드라이브에 30일간 보관 후 자동 삭제되고, 신청 내용은 FormSubmit 서버에 30일간 보관됩니다.",
-  ],
-};
-
-/* ==========================================================================
- *  4. 교육 과정 안내 (교육신청 카드)
- * --------------------------------------------------------------------------
- *  - deadline : 신청 마감일. 이 날짜가 지나면 자동으로 '접수 마감' 표시됩니다.
- *  - endDate  : 교육 마지막 날. 이 날짜가 지나면 목록에서 자동으로 숨겨집니다.
- *  - applyFile: 신청서(HWP) 주소 / detailUrl: '자세히 보기' 주소
- *  - lines    : 카드에 표시할 안내 문구. ["항목", "내용"] 형식.
- *               내용에 **글자** 처럼 별표 2개로 감싸면 빨간 굵은 글씨가 됩니다.
- * ========================================================================== */
-KAR.courses = [
-  {
-    title: "APG(심사수행그룹) 해설 및 적용 세미나",
-    lines: [
-      ["일시", "2026년 11월 7일(토) 09:00 ~ 18:00 (8시간)"],
-      ["방식", "현장 + ZOOM 온라인 병행"],
-      ["대상", "필기시험 합격자 및 심사원보 이상 자격 보유자"],
-      ["참가비", "**220,000원**"],
-    ],
-    deadlineText: "2026년 11월 2일(월) 18:00까지",
-    deadline: "2026-11-02",
-    endDate: "2026-11-07",
-    applyFile: "https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%202026%EB%85%84%20APG(%EC%8B%AC%EC%82%AC%EC%88%98%ED%96%89%EA%B7%B8%EB%A3%B9)%20%ED%95%B4%EC%84%A4%20%EB%B0%8F%20%EC%A0%81%EC%9A%A9%20%EC%84%B8%EB%AF%B8%EB%82%98(%EC%98%A8%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%20%EB%B3%91%ED%96%89)%20%EA%B5%90%EC%9C%A1%20%EC%B0%B8%EA%B0%80%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp",
-    detailUrl: "https://kar0156-debug.github.io/KAR-Training-Documents/2026%20APG.html",
-  },
-  {
-    title: "ESG 경영과 SDG 경영시스템(ISO/UNDP 53001) 실무 세미나",
-    lines: [
-      ["일시", "2026년 11월 28일(토) 09:00 ~ 18:00 (8시간)"],
-      ["방식", "현장 + ZOOM 온라인 병행"],
-      ["참가비", "**220,000원** (회원사 소속 인증심사원 10% 할인 시 198,000원)"],
-    ],
-    deadlineText: "2026년 11월 23일(월) 18:00까지",
-    deadline: "2026-11-23",
-    endDate: "2026-11-28",
-    applyFile: "https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%20%5DSOUNDP%2053001%20UN%20%EC%A7%80%EC%86%8D%EA%B0%80%EB%8A%A5%EB%B0%9C%EC%A0%84%EB%AA%A9%ED%91%9C%20%EA%B2%BD%EC%98%81%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%84%B8%EB%AF%B8%EB%82%98(%EC%98%A8%C2%B7%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%20%EB%B3%91%ED%96%89)%20%EA%B5%90%EC%9C%A1%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp",
-    detailUrl: "https://kar0156-debug.github.io/KAR-Training-Documents/2026%20SDG.html",
-  },
-  {
-    title: "2026년 심사경력인정 특별과정",
-    lines: [
-      ["대상", "심사훈련 기회가 없는 QMS·EMS·OHSMS 분야 심사원보"],
-      ["일정", "공통(ZOOM) 11/28(토)~29(일) 후, 분야별 현장 2일"],
-      ["분야별", "품질 12/5~6 · 환경 12/12~13 · 안전보건 12/19~20"],
-      ["참가비", "**1개 분야 1,500,000원** · 2개 분야 2,900,000원 · 3개 분야 4,300,000원"],
-    ],
-    deadlineText: "해당 교육일자 7일 전까지",
-    deadline: "2026-12-12",
-    endDate: "2026-12-20",
-    applyFile: "https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%84%202%5D%202026_%EC%8B%AC%EC%82%AC%EA%B2%BD%EB%A0%A5%EC%9D%B8%EC%A0%95%20%ED%8A%B9%EB%B3%84%EA%B3%BC%EC%A0%95_%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp",
-    detailUrl: "https://kar0156-debug.github.io/KAR-Training-Documents/2026%EB%85%84%20%EC%8B%AC%EC%82%AC%EA%B2%BD%EB%A0%A5%EC%9D%B8%EC%A0%95%20%ED%8A%B9%EB%B3%84%EA%B3%BC%EC%A0%95.html",
-  },
-  {
-    title: "2026년 ISO 인증심사원 자격갱신 과정 (11/20, 12/11, 12/12(ISMS+PIMS), 12/12)",
-    lines: [
-      ["일시", "[모듈2 분야별] 11월 20일(토) · [모듈1 공통] 12월 11일(금) · [모듈2 ISMS+PIMS] 12월 12일(토) · [모듈2 분야별] 12월 12일(토), 각 1일(8H)"],
-      ["방식", "현장 집체 또는 ZOOM 실시간 온라인 중 택일"],
-      ["대상", "자격갱신 대상 심사원·선임심사원·검증심사원"],
-      ["참가비", "**과정당 220,000원** (중식비 지원)"],
-    ],
-    deadlineText: "해당 교육일자 7일 전까지",
-    deadline: "2026-12-05",
-    endDate: "2026-12-12",
-    applyFile: "https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%20%EC%9E%90%EA%B2%A9%EA%B0%B1%EC%8B%A0%20%EA%B3%BC%EC%A0%95%20%EC%B0%B8%EA%B0%80%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp",
-    detailUrl: "https://kar0156-debug.github.io/KAR-Training-Documents/2026%EB%85%84%20ISO%20%EC%9D%B8%EC%A6%9D%EC%8B%AC%EC%82%AC%EC%9B%90%20%EC%9E%90%EA%B2%A9%EA%B0%B1%EC%8B%A0%20%EA%B3%BC%EC%A0%95.html",
-  },
-];
-
-
-/* ==========================================================================
- *  5. 각종 서식 다운로드
- * --------------------------------------------------------------------------
- *  - 새 서식 추가 : ① GitHub의 files/forms/분류폴더 에 파일 업로드
- *                   ② 아래 해당 그룹의 items 에 한 줄 추가
- *       { title: "서식 이름(코드)", files: ["files/forms/qual/파일명.hwp"] },
- *  - 같은 서식의 HWP·DOCX 두 가지가 있으면 files 에 두 개를 나란히 적습니다.
- *  - 새로 바뀐 서식은 isNew: true 를 붙이면 'NEW' 표시가 붙습니다.
- * ========================================================================== */
-KAR.formCategories = [
-  {
-    id: "qual",
-    name: "자격인증 신청",
-    desc: "작성한 서식은 증빙서류와 함께 admin@kar.re.kr 로 보내 주세요. (등기우편·방문 접수 가능)",
-    groups: [
-      { name: "자격인증 신청서 (승급·갱신·코드추가 공통) — 심사원보, 심사원, 선임/검증심사원", items: [
-        { title: "인증심사원 자격인증 신청서 (KAR-C-300-1, 2026-01-07 개정)", files: ["files/forms/qual/KAR-C-300-1_인증심사원_자격인증_신청서_2026-01-07.hwp", "files/forms/qual/KAR-C-300-1_인증심사원_자격인증_신청서_2026-01-07.docx"] },
-      ]},
-      { name: "심사경험 · 경력", items: [
-        { title: "심사총괄표 (KAR-C-300-3, 2024-10-08 개정)", files: ["files/forms/qual/KAR-C-300-3_심사총괄표_2024-10-08.hwp"] },
-        { title: "자문(지도) 경력 총괄표 (KAR-C-300-7)", files: ["files/forms/qual/KAR-C-300-7_자문(지도)_경력_총괄표.hwp"] },
-        { title: "자문(지도) 수행 확인서 (KAR-C-300-8)", files: ["files/forms/qual/KAR-C-300-8_자문(지도)_수행_확인서.hwp"] },
-      ]},
-      { name: "기술개발활동 · 심사수행범위", items: [
-        { title: "기술개발활동 실적[총괄] (KAR-C-300-5)", files: ["files/forms/qual/KAR-C-300-5_기술개발활동_실적(총괄).hwp"] },
-        { title: "기술개발활동 실적[일지] (KAR-C-300-6)", files: ["files/forms/qual/KAR-C-300-6_기술개발활동_실적(일지).hwp"] },
-        { title: "심사수행범위 신청내역서 (KAR-C-300-4)", files: ["files/forms/qual/KAR-C-300-4_심사수행범위_신청내역서.hwp"] },
-      ]},
-      { name: "합격증 갱신 · 연자격 유지 · 재발급 · 등록전환", items: [
-        { title: "합격증 갱신신청서 (KAR-C-300-11)", files: ["files/forms/qual/KAR-C-300-11_합격증갱신신청서_2017-05-24.hwp"] },
-        { title: "심사원 연(年)자격 유지 신청서 (KAR-C-300-9)", files: ["files/forms/qual/KAR-C-300-9_심사원_연자격_유지_신청서.hwp"] },
-        { title: "인증서 및 ID카드 재발급 신청서 (KAR-C-300-10)", files: ["files/forms/qual/KAR-C-300-10_재발급_신청서.hwp"] },
-        { title: "KAR 등록전환신청서 (KAR-C-300-12)", files: ["files/forms/qual/KAR-C-300-12_KAR_등록전환신청서.hwp"] },
-        { title: "해외/국내 심사원자격 인정 신청서 (KAR-F-100-1)", files: ["files/forms/qual/KAR-F-100-1_해외국내_심사원자격_인정_신청서.hwp"] },
-      ]},
-      { name: "개정판 자격전환", items: [
-        { title: "ISO 14001:2026 자격전환 신청서 (KAR-C-713-1)", files: ["files/forms/qual/KAR-C-713-1_ISO_14001_2026_자격전환신청서_2026-05-12.hwp"], isNew: true },
-        { title: "ISO/IEC 27701:2025 자격전환 신청서 (KAR-C-780-1)", files: ["files/forms/qual/KAR-C-780-1_ISO_IEC_27701_2025_자격전환신청서_2026-01-23.hwp"] },
-        { title: "ISO 37001:2025 자격전환 신청서 (KAR-C-770-1)", files: ["files/forms/qual/KAR-C-770-1_ISO_37001_2025_자격전환신청서_2025-12-23.hwp"] },
-        { title: "ISO/IEC 27001:2022 자격전환 신청서 (KAR-C-731-1)", files: ["files/forms/qual/KAR-C-731-1_ISO_IEC_27001_2022-2023-07-31.hwp"] },
-        { title: "ISO 22301:2019 자격전환 신청서 (KAR-C-760-1)", files: ["files/forms/qual/KAR-C-760-1_ISO_22301-2019_자격전환_신청서.hwp"] },
-        { title: "ISO 45001:2018 자격전환 신청서 (KAR-C-721-1)", files: ["files/forms/qual/KAR-C-721-1_ISO_45001_자격전환_신청서.hwp"] },
-        { title: "ISO 22000:2018 자격전환 신청서 (KAR-C-740-1)", files: ["files/forms/qual/KAR-C-740-1_ISO_22000.hwp"] },
-        { title: "ISO 50001:2018 자격전환 신청서 (KAR-C-750-1)", files: ["files/forms/qual/KAR-C-750-1_ISO_50001.hwp"] },
-        { title: "KS I 7001 & 7002:2018 자격전환 신청서 (KAR-C-712-1)", files: ["files/forms/qual/KAR-C-712-1_KS_I_7001-7002_2018_자격전환_신청서.hwp"] },
-        { title: "ISO 9001:2015 자격전환 신청서 (KAR-C-701-1)", files: ["files/forms/qual/KAR-C-701-1_ISO_9001-2015_자격전환_신청서_2015-06-18.hwp"] },
-        { title: "ISO 14001:2015 자격전환 신청서 (KAR-C-711-1)", files: ["files/forms/qual/KAR-C-711-1_ISO_14001-2015_자격전환_신청서_2015-06-18.hwp"] },
-        { title: "ISO/IEC 27001:2013 자격전환 신청서 (KAR-C-730)", files: ["files/forms/qual/KAR-C-730_ISO_27001_2013_자격전환신청서.hwp"] },
-        { title: "ISO 9001:2008 자격전환 신청서 (KAR-C-700-1)", files: ["files/forms/qual/KAR-C-700-1_ISO_9001-2008자격전환_신청서식.hwp"] },
-        { title: "ISO 14001:2004 자격전환 신청서 (KAR-C-710)", files: ["files/forms/qual/KAR-C-710_ISO_14001-2004_자격전환_신청서.hwp"] },
-        { title: "ISO/IEC 27001:2005 자격전환 신청서 (KAR-C-390-1)", files: ["files/forms/qual/KAR-C-390-1_ISMS_규격전환_신청서.hwp"] },
-        { title: "OHSAS 18001 자격전환 신청서 (KAR-C-720-1)", files: ["files/forms/qual/KAR-C-720-1_OHSAS_자격전환_신청서.hwp"] },
-        { title: "ISO 9001:2000 자격전환 신청서 (KAR-C-310-1)", files: ["files/forms/qual/KAR-C-310-1_ISO_9001-2000_자격전환_신청서.hwp"] },
-      ]},
-      { name: "국제통용발자국 검증심사원", items: [
-        { title: "발자국 검증심사원 자격인증 신청서 (KAR-P-300-1, 2026-03-23 개정)", files: ["files/forms/qual/KAR-P-300-1_검증심사원_자격인증_신청서_2026-03-23.hwp"] },
-        { title: "발자국 검증심사 수행경력 총괄표 (KAR-P-300-3, 2026-06-05 개정)", files: ["files/forms/qual/KAR-P-300-3_검증심사_수행경력_총괄표_2026-06-05.hwp"] },
-      ]},
-    ],
-  },
-  {
-    id: "exam",
-    name: "자격시험",
-    desc: "응시 신청은 '온라인 신청 > 자격시험 신청'를 이용해 주세요. 응시원서를 작성해 admin@kar.re.kr 로 보내셔도 됩니다.",
-    groups: [
-      { name: "필기시험", items: [
-        { title: "인증심사원 필기시험 응시원서 (KAR-E-100-1)", files: ["files/forms/exam/KAR-E-100-1_인증심사원필기시험응시원서_2015-08-05.hwp"] },
-        { title: "시험응시 및 연기·환불 신청서 (KAR-E-100-2)", files: ["files/forms/exam/KAR-E-100-2_시험응시및연기환불신청서_2015-12-17.hwp"] },
-      ]},
-    ],
-  },
-  {
-    id: "edu",
-    name: "교육 · 연수",
-    desc: "교육 신청은 '온라인 신청 > 교육 신청' 또는 아래 신청서를 작성해 edu@kar.re.kr 로 보내 주세요.",
-    groups: [
-      { name: "현재 모집 중인 교육 신청서", items: [
-        { title: "2026년 APG(심사수행그룹) 해설 및 적용 세미나 참가 신청서", files: ["https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%202026%EB%85%84%20APG(%EC%8B%AC%EC%82%AC%EC%88%98%ED%96%89%EA%B7%B8%EB%A3%B9)%20%ED%95%B4%EC%84%A4%20%EB%B0%8F%20%EC%A0%81%EC%9A%A9%20%EC%84%B8%EB%AF%B8%EB%82%98(%EC%98%A8%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%20%EB%B3%91%ED%96%89)%20%EA%B5%90%EC%9C%A1%20%EC%B0%B8%EA%B0%80%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp"] },
-        { title: "ISO/UNDP 53001 SDG 경영시스템 세미나 참가 신청서", files: ["https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%20%5DSOUNDP%2053001%20UN%20%EC%A7%80%EC%86%8D%EA%B0%80%EB%8A%A5%EB%B0%9C%EC%A0%84%EB%AA%A9%ED%91%9C%20%EA%B2%BD%EC%98%81%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%84%B8%EB%AF%B8%EB%82%98(%EC%98%A8%C2%B7%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%20%EB%B3%91%ED%96%89)%20%EA%B5%90%EC%9C%A1%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp"] },
-        { title: "2026년 심사경력인정 특별과정 신청서", files: ["https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%84%202%5D%202026_%EC%8B%AC%EC%82%AC%EA%B2%BD%EB%A0%A5%EC%9D%B8%EC%A0%95%20%ED%8A%B9%EB%B3%84%EA%B3%BC%EC%A0%95_%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp"] },
-        { title: "2026년 자격갱신 과정 참가 신청서", files: ["https://github.com/kar0156-debug/KAR-Training-Documents/raw/refs/heads/main/%5B%EB%B6%99%EC%9E%842%5D%20%EC%9E%90%EA%B2%A9%EA%B0%B1%EC%8B%A0%20%EA%B3%BC%EC%A0%95%20%EC%B0%B8%EA%B0%80%20%EC%8B%A0%EC%B2%AD%EC%84%9C.hwp", "files/notices/6463/[붙임2]_자격갱신_과정_참가_신청서.docx"] },
-      ]},
-      { name: "정규교육 · 행사", items: [
-        { title: "보수교육 참가신청서", files: ["files/forms/edu/보수교육_참가신청서.hwp"] },
-        { title: "심사원컨퍼런스 참가신청서", files: ["files/forms/edu/심사원컨퍼런스_참가신청서.hwp"] },
-      ]},
-    ],
-  },
-  {
-    id: "etc",
-    name: "영수증 · 증빙 서류",
-    desc: "거래처 등록·지출 증빙용 서류입니다. 영수증 발급은 '온라인 신청 > 영수증 신청·출력'을 이용해 주세요.",
-    groups: [
-      { name: "증빙 서류", items: [
-        { title: "사업자등록증", files: ["files/forms/etc/사업자등록증.pdf"] },
-        { title: "통장사본 (자격인증 수수료용)", files: ["files/forms/etc/통장사본_자격인증.pdf"] },
-        { title: "통장사본 (교육비 · 시험 응시료용)", files: ["files/forms/etc/통장사본_교육_시험.pdf"] },
-      ]},
-    ],
-  },
-];
-
-// 자격인증 신청 시 제출서류 안내 (서식 다운로드 영역 상단 '제출서류 안내'에 표시)
-KAR.requiredDocs = [
-  { title: "신규 자격인증(등록) 신청", rows: [
-    ["심사원보", "자격인증 신청서(KAR-C-300-1), 학력증명서(졸업증명서 또는 학위기), 재직/경력증명서, 신청분야 관련 실무경력 증명서류(인사기록카드·재직증명서·품의서·보고서 등)", "연수기관 자체 필기시험 합격자는 연수기관 수료증 및 합격증 제출"],
-    ["심사원 · 선임심사원", "자격인증 신청서(KAR-C-300-1), 심사총괄표(KAR-C-300-3), [심사원 최초 등록 시] 심사수행범위 신청내역서(KAR-C-300-4) 및 증명서류", "심사수행범위는 신청한 범위에 대해서만 적부 결정"],
-    ["검증심사원", "자격인증 신청서(KAR-C-300-1), 심사총괄표(KAR-C-300-3)", ""],
-  ]},
-  { title: "자격갱신 신청 (만료되는 자격유효기간 연장)", rows: [
-    ["예비심사원 · 합격자 · 심사원보", "자격인증 신청서(KAR-C-300-1), 기술개발활동 입증서류(신청분야 관련 교육 수료증 등)", ""],
-    ["심사원 이상", "자격인증 신청서(KAR-C-300-1), 심사총괄표(KAR-C-300-3), 기술개발활동 실적[총괄](KAR-C-300-5), 기술개발활동 입증서류", ""],
-  ]},
-  { title: "기타", rows: [
-    ["심사수행범위 추가", "자격인증 신청서(KAR-C-300-1), 심사수행범위 신청내역서(KAR-C-300-4) 및 증명서류", "최초 심사원 등록 이후 추가 신청"],
-    ["개정판 자격전환", "분야별 자격전환 신청서, 자격전환 교육 수료증 또는 자가학습 레포트", ""],
-  ]},
-];
-
-// 자격인증 공고 일정 (매주 화요일, 공휴일 제외)
-KAR.announcements = {
-  note: "자격평가는 통상 접수 후 20일 이내 처리되며, 공고일 1주일 전까지 서류를 제출해 주세요.",
-  dates: [
-    ["제533차", "2026-11-03"], ["제534차", "2026-11-10"], ["제535차", "2026-11-17"],
-    ["제536차", "2026-11-24"], ["제537차", "2026-12-01"], ["제538차", "2026-12-08"],
-    ["제539차", "2026-12-15"], ["제540차", "2026-12-22"], ["제541차", "2026-12-29"],
-    // 2027년 일정이 확정되면 여기에 이어서 추가하세요. 예) ["제542차", "2027-01-05"],
-  ],
-};
-
-
-/* ==========================================================================
- *  5-1. 자격인증기준 (GitHub 저장소 연동)
- * --------------------------------------------------------------------------
- *  - 기준 파일(HTML)은 아래 저장소에서 관리합니다.
- *      https://github.com/kar0156-debug/KAR-Qualification-Criteria
- *  - autoSync: true 이면 홈페이지가 열릴 때 저장소의 파일 목록을 자동으로 읽어옵니다.
- *    → 저장소에 새 기준 파일을 올리기만 하면 홈페이지 목록에 자동으로 나타납니다.
- *    (GitHub 접속이 안 될 때는 아래 files 목록을 대신 보여 줍니다)
- *  - 파일 이름 규칙 : "[현행본] 기준명_시행일 2026.06.05.html"
- *    → "[현행본]" 은 배지로, 맨 뒤 날짜는 시행일로 표시됩니다.
- *  - 목록에서 빼고 싶은 파일은 hide 에 파일 이름을 적습니다.
- * ========================================================================== */
-KAR.criteria = {
-  owner: "kar0156-debug",
-  repo: "KAR-Qualification-Criteria",
-  branch: "main",
-  folder: "",          // 하위 폴더에 둘 경우 폴더명 (예: "current")
-  autoSync: true,
-  hide: [],
-  files: [
-    "[현행본] 국제통용발자국 검증심사원 자격인증기준 제정_시행일 2026.06.05.html",
-    "[현행본] 환경경영시스템(ISO 14001 2026) 자격전환 규칙 제정_시행일 2026.05.12.html",
-    "[현행본] 도로차량 사이버보안 엔지니어링(ISO SAE 21434) 인증심사원 자격인증기준 제정_2026.3.18.html",
-    "[현행본] 개인정보보호경영시스템(ISO IEC 27701 2025) 자격전환 규칙 제정_2026.1.23.html",
-    "[현행본] 부패방지경영시스템(ISO 37001 2025) 자격전환 규칙 개정_시행일 2025.12.23.html",
-    "[현행본] SDG경영시스템(ISO UNDP DIS 53001) 인증심사원 자격인증기준 제정_2025.9.30.html",
-    "[현행본]인공지능경영시스템(ISO IEC 42001) 인증심사원 자격인증기준 개정_2025.9.2.html",
-    "[현행본]환경경영시스템(ISO 37001) 인증심사원 자격인증기준 개정_2025.8.26.html",
-    "[현행본]품질경영시스템(ISO 9001) 인증심사원 자격인증기준 개정_2025.1.8.html",
-    "[현행본]환경경영시스템(ISO 14001) 인증심사원 자격인증기준 개정_2025.1.8.html",
-    "[현행본]안전보건경영시스템(ISO 45001) 인증심사원 자격인증기준 개정_2025.1.8.html",
-    "[현행본]식품안전경영시스템(ISO 22000) 인증심사원 자격인증기준 개정_2025.1.8.html",
-    "[현행본]에너지경영시스템(ISO 50001) 인증심사원 자격인증기준 개정_2025.1.8.html",
-  ],
-};
-
-/* ==========================================================================
- *  6. 공지사항 · 교육훈련 게시글 (본문·첨부가 있는 글)
- * --------------------------------------------------------------------------
- *  - 최근 3년 이전 게시글(본문·첨부)은 data/notice-archive.js 에 있으며 자동으로 함께 표시됩니다.
- *  - 새 공지 추가 : ① content/notices 폴더에 본문 HTML 파일 업로드 (기존 파일 복사해서 수정)
- *                   ② 첨부파일은 files/notices/글번호/ 폴더에 업로드
- *                   ③ 아래 목록 '맨 위'에 블록 하나 추가
- *  - category 는 "공지" 또는 "교육"
- *  - pinned: true 를 넣으면 목록 맨 위에 고정됩니다.
- * ========================================================================== */
-KAR.notices = [
-  {
-    date: "2026-11-03", category: "공지", pinned: true,
-    title: "[안내] 홈페이지 보안 강화 작업에 따른 임시 홈페이지 운영 안내",
-    content: "content/notices/temp-homepage.html",
-    files: []
-  },
-  // ↑ 새 글은 이 위(맨 위)에 추가하세요. 이전 게시글(최근 3년)은 data/notice-archive.js 에 있습니다.
-];
